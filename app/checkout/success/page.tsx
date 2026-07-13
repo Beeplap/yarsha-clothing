@@ -20,7 +20,7 @@ function SuccessContent() {
       <h1 className="checkout-success__title">Thank you for your order!</h1>
       
       <p className="checkout-success__message">
-        Your order has been successfully placed. We'll send you an email confirmation shortly.
+        Your order has been successfully placed. We&apos;ll send you an email confirmation shortly.
       </p>
       
       {orderId && (

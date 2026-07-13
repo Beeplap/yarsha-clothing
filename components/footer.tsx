@@ -29,9 +29,9 @@ export default function Footer() {
           <div className="footer__col">
             <h3 className="footer__heading">Shop</h3>
             <ul className="footer__links">
-              <li><Link href="/collections">All Collections</Link></li>
-              <li><Link href="/collections?category=new">New Arrivals</Link></li>
-              <li><Link href="/collections?featured=true">Featured</Link></li>
+              <li><Link href="/products">All Collections</Link></li>
+              <li><Link href="/products?category=new">New Arrivals</Link></li>
+              <li><Link href="/products?featured=true">Featured</Link></li>
             </ul>
           </div>
 

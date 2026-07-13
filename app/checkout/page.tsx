@@ -81,8 +81,8 @@ export default function CheckoutPage() {
       // Redirect to success
       router.push(`/checkout/success?order=${orderId}`);
       
-    } catch (err: any) {
-      setError(err.message || "An error occurred during checkout.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred during checkout.");
       setSubmitting(false);
     }
   };

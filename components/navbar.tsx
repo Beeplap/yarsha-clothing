@@ -17,8 +17,6 @@ export default function Navbar() {
 
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
-  if (pathname.startsWith("/admin")) return null;
-
   useEffect(() => {
     // Get initial user
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -45,7 +43,11 @@ export default function Navbar() {
 
   // Close mobile menu on route change
   useEffect(() => {
-    setMobileMenuOpen(false);
+    // Avoid synchronous state update in effect
+    const timeout = setTimeout(() => {
+      setMobileMenuOpen(false);
+    }, 0);
+    return () => clearTimeout(timeout);
   }, [pathname]);
 
   const handleSignOut = async () => {
@@ -55,9 +57,11 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/collections", label: "Collections" },
+    { href: "/products", label: "Collections" },
     { href: "/about", label: "About" },
   ];
+
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <>
