@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { CartProvider } from "@/context/cart-context";
+import LenisProvider from "@/components/lenis-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,13 +26,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable}`}>
-        <CartProvider>
-          <div className="main-content">
-            <Navbar />
-            <main className="main-content__body">{children}</main>
-            <Footer />
-          </div>
-        </CartProvider>
+        <LenisProvider>
+          <CartProvider>
+            <div className="main-content">
+              <Navbar />
+              <main className="main-content__body">{children}</main>
+              <Footer />
+            </div>
+          </CartProvider>
+        </LenisProvider>
       </body>
     </html>
   );

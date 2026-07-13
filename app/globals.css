@@ -2828,3 +2828,238 @@ body {
   margin-bottom: 1.25rem;
   color: var(--color-neutral-900);
 }
+
+/* =============================================
+   ABOUT PAGE
+   ============================================= */
+
+.about-page {
+  padding-top: 5rem;
+}
+
+.about-hero {
+  padding: 8rem 2rem;
+  background: var(--color-neutral-900);
+  color: white;
+  text-align: center;
+}
+
+.about-hero__content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-hero__title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.about-hero__subtitle {
+  font-size: 1.125rem;
+  color: var(--color-neutral-300);
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.about-story {
+  padding: 6rem 2rem;
+  background: white;
+}
+
+.about-story__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.about-story__heading {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+.about-story__text p {
+  color: var(--color-neutral-600);
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.about-values {
+  padding: 6rem 2rem;
+  background: var(--color-neutral-50);
+}
+
+.about-values__container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.about-values__heading {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.about-values__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.value-card {
+  background: white;
+  padding: 3rem 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.value-card__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.value-card__desc {
+  color: var(--color-neutral-600);
+  line-height: 1.6;
+}
+
+.about-cta {
+  padding: 8rem 2rem;
+  background: white;
+  text-align: center;
+}
+
+.about-cta__title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .about-story__container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================
+   PARALLAX SHOWCASE (GSAP)
+   ============================================= */
+
+.parallax-showcase {
+  background: var(--color-neutral-950);
+  color: white;
+  padding: 8rem 2rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.parallax-showcase__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.parallax-showcase__text {
+  text-align: center;
+  margin-bottom: 6rem;
+  position: relative;
+  z-index: 10;
+}
+
+.parallax-showcase__text h2 {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #fff 0%, #a3a3a3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.parallax-showcase__text p {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  color: var(--color-neutral-400);
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.parallax-showcase__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.parallax-showcase__item {
+  position: relative;
+  will-change: transform, opacity;
+}
+
+.parallax-showcase__item--center {
+  margin-top: -4rem; /* Offset center item slightly higher */
+}
+
+.parallax-showcase__image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  background: #000;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.parallax-showcase__img {
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.parallax-showcase__item:hover .parallax-showcase__img {
+  transform: scale(1.05);
+}
+
+.parallax-showcase__info {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.parallax-showcase__info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.parallax-showcase__info p {
+  font-size: 0.875rem;
+  color: var(--color-neutral-400);
+  line-height: 1.5;
+}
+
+@media (max-width: 1024px) {
+  .parallax-showcase__grid {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+  
+  .parallax-showcase__item--center {
+    margin-top: 0;
+  }
+  
+  .parallax-showcase__image-wrapper {
+    aspect-ratio: 16/9;
+  }
+}

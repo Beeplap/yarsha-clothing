@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import ProductCard from "@/components/product-card";
 import CategorySlider from "@/components/category-slider";
+import ParallaxShowcase from "@/components/parallax-showcase";
 import type { Product, Category } from "@/types/database";
 
 export default async function HomePage() {
@@ -53,6 +54,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* GSAP Parallax Showcase */}
+      <ParallaxShowcase />
 
       {/* Categories */}
       {categories && categories.length > 0 && (

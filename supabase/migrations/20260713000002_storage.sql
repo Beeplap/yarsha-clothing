@@ -12,7 +12,7 @@ USING (bucket_id = 'product-images');
 CREATE POLICY "Admin Upload Access" 
 ON storage.objects FOR INSERT 
 TO authenticated 
-USING (
+WITH CHECK (
   bucket_id = 'product-images' AND
   (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'manager')
 );
