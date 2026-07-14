@@ -12,16 +12,20 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ product }: ProductDetailProps) {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [addedMessage, setAddedMessage] = useState("");
   const { addToCart } = useCart();
 
-  const images =
+  const baseImages =
     product.images && product.images.length > 0
       ? product.images
       : ["/placeholder-product.jpg"];
+      
+  // For sticky scroll gallery, ensure we have enough images to scroll
+  const displayImages = baseImages.length >= 3 
+    ? baseImages 
+    : [...baseImages, ...baseImages, ...baseImages].slice(0, 3);
 
   const hasDiscount =
     product.compare_at_price && product.compare_at_price > product.price;
@@ -53,32 +57,20 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
   return (
     <div className="pdp">
-      {/* Image Gallery */}
+      {/* Image Gallery (Scrolling) */}
       <div className="pdp__gallery">
-        <div className="pdp__main-image-wrapper">
-          <img
-            src={images[selectedImage]}
-            alt={product.name}
-            className="pdp__main-image"
-          />
-          {hasDiscount && (
-            <span className="pdp__badge">-{discountPercent}% OFF</span>
-          )}
-        </div>
-        {images.length > 1 && (
-          <div className="pdp__thumbs">
-            {images.map((img, i) => (
-              <button
-                key={i}
-                className={`pdp__thumb ${i === selectedImage ? "pdp__thumb--active" : ""}`}
-                onClick={() => setSelectedImage(i)}
-                aria-label={`View image ${i + 1}`}
-              >
-                <img src={img} alt="" />
-              </button>
-            ))}
+        {displayImages.map((img, index) => (
+          <div key={index} className="pdp__main-image-wrapper">
+            <img
+              src={img}
+              alt={`${product.name} - View ${index + 1}`}
+              className="pdp__main-image"
+            />
+            {index === 0 && hasDiscount && (
+              <span className="pdp__badge">-{discountPercent}% OFF</span>
+            )}
           </div>
-        )}
+        ))}
       </div>
 
       {/* Product Info */}

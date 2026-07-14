@@ -14,9 +14,24 @@ export default async function OrdersPage() {
 
   if (!orders || orders.length === 0) {
     return (
-      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '3rem', borderRadius: '1rem', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>No Orders Found</h2>
-        <p style={{ color: '#a3a3a3' }}>You haven't placed any orders yet.</p>
+      <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '5rem 2rem', borderRadius: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div style={{ position: 'relative', width: '200px', height: '200px', marginBottom: '2rem', animation: 'float 6s ease-in-out infinite' }}>
+          <div style={{ position: 'absolute', inset: 0, border: '1px dashed rgba(0, 212, 255, 0.3)', borderRadius: '50%', animation: 'spin 20s linear infinite' }} />
+          <div style={{ position: 'absolute', inset: '20px', border: '1px solid rgba(14, 165, 233, 0.2)', borderRadius: '50%', animation: 'spin 15s linear infinite reverse' }} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(0, 212, 255, 0.5)' }}>
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m7.5 4.27 9 5.15" />
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+              <path d="m3.3 7 8.7 5 8.7-5" />
+              <path d="M12 22V12" />
+            </svg>
+          </div>
+        </div>
+        <h2 style={{ fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem', color: '#fff' }}>No Orders Found</h2>
+        <p style={{ color: '#a3a3a3', fontSize: '1.1rem', maxWidth: '400px', marginBottom: '2rem' }}>You haven't initiated any protocols yet. Explore the collection to begin your journey.</p>
+        <a href="/products" className="magnetic-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#fff', color: '#000', padding: '1rem 2.5rem', borderRadius: '3rem', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.9rem', transition: 'transform 0.2s' }}>
+          Initialize Order
+        </a>
       </div>
     );
   }

@@ -6,6 +6,7 @@ import Footer from "@/components/footer";
 import { CartProvider } from "@/context/cart-context";
 import LenisProvider from "@/components/lenis-provider";
 import GsapAnimations from "@/components/gsap-animations";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,6 +36,7 @@ export default function RootLayout({
               <main className="main-content__body">{children}</main>
               <Footer />
             </div>
+            <Toaster theme="dark" position="bottom-right" toastOptions={{ style: { background: 'rgba(10,10,10,0.8)', border: '1px solid rgba(0, 212, 255, 0.3)', backdropFilter: 'blur(10px)' } }} />
           </CartProvider>
         </LenisProvider>
       </body>

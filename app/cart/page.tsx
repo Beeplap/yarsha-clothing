@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/context/cart-context";
 import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function CartPage() {
@@ -59,7 +60,7 @@ export default function CartPage() {
             code: error.code
           }, null, 2);
           console.error("Failed to deduct stock:", errorDetails);
-          alert(`There was an issue processing your order:\n${error.message}\n\nMake sure you ran the SQL migration provided previously!`);
+          toast.error(`There was an issue processing your order:\n${error.message}\n\nMake sure you ran the SQL migration provided previously!`);
           return;
         }
 
@@ -81,7 +82,7 @@ export default function CartPage() {
       
     } catch (err) {
       console.error(err);
-      alert("Failed to process order.");
+      toast.error("Failed to process order.");
     }
   };
 
@@ -91,15 +92,22 @@ export default function CartPage() {
         <h1 className="cart-page__title">Your Cart</h1>
 
         {items.length === 0 ? (
-          <div className="cart-page__empty">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="cart-page__empty-icon">
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
-            <p>Your cart is currently empty.</p>
-            <Link href="/products" className="cart-page__continue-btn">
-              Continue Shopping
+          <div className="cart-page__empty" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '5rem 2rem', borderRadius: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+            <div style={{ position: 'relative', width: '200px', height: '200px', marginBottom: '2rem', animation: 'float 6s ease-in-out infinite' }}>
+              <div style={{ position: 'absolute', inset: 0, border: '1px dashed rgba(249, 115, 22, 0.3)', borderRadius: '50%', animation: 'spin 20s linear infinite' }} />
+              <div style={{ position: 'absolute', inset: '20px', border: '1px solid rgba(249, 115, 22, 0.2)', borderRadius: '50%', animation: 'spin 15s linear infinite reverse' }} />
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(249, 115, 22, 0.5)' }}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="cart-page__empty-icon">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                  <path d="M3 6h18" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+              </div>
+            </div>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem', color: '#fff' }}>Cart Empty</h2>
+            <p style={{ color: '#a3a3a3', fontSize: '1.1rem', maxWidth: '400px', marginBottom: '2rem' }}>No items detected in your payload. Explore the catalog to select your gear.</p>
+            <Link href="/products" className="cart-page__continue-btn magnetic-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#fff', color: '#000', padding: '1rem 2.5rem', borderRadius: '3rem', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.9rem', transition: 'transform 0.2s' }}>
+              Access Catalog
             </Link>
           </div>
         ) : (

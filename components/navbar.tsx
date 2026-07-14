@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useCart } from "@/context/cart-context";
 import gsap from "gsap";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
@@ -133,7 +134,7 @@ export default function Navbar() {
       >
         <div className="navbar__container">
           {/* Logo */}
-          <Link href="/" className="navbar__logo" ref={logoRef}>
+          <Link href="/" className="navbar__logo" ref={logoRef} style={{ position: "relative", zIndex: 100 }}>
             <span className="navbar__logo-text" style={{ color: "#fff" }}>
               YARSHA
             </span>
@@ -244,7 +245,7 @@ export default function Navbar() {
               href="/cart"
               className="navbar__icon-btn"
               aria-label="Cart"
-              style={{ position: "relative", color: "rgba(255,255,255,0.7)" }}
+              style={{ position: "relative", color: "rgba(255,255,255,0.7)", zIndex: 100 }}
             >
               <svg
                 width="20"
@@ -272,81 +273,154 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
             aria-expanded={mobileMenuOpen}
+            style={{
+              position: "relative",
+              zIndex: 100,
+              width: "28px",
+              height: "20px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
           >
-            <span
-              className={`navbar__hamburger-line ${
-                mobileMenuOpen ? "navbar__hamburger-line--open" : ""
-              }`}
-              style={{ backgroundColor: "#fff" }}
+            <motion.span
+              animate={mobileMenuOpen ? { rotate: 45, y: 9 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ width: "100%", height: "2px", backgroundColor: "#fff", transformOrigin: "center", display: "block" }}
             />
-            <span
-              className={`navbar__hamburger-line ${
-                mobileMenuOpen ? "navbar__hamburger-line--open" : ""
-              }`}
-              style={{ backgroundColor: "#fff" }}
+            <motion.span
+              animate={mobileMenuOpen ? { opacity: 0, x: 20 } : { opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ width: "100%", height: "2px", backgroundColor: "#fff", display: "block" }}
             />
-            <span
-              className={`navbar__hamburger-line ${
-                mobileMenuOpen ? "navbar__hamburger-line--open" : ""
-              }`}
-              style={{ backgroundColor: "#fff" }}
+            <motion.span
+              animate={mobileMenuOpen ? { rotate: -45, y: -9 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ width: "100%", height: "2px", backgroundColor: "#fff", transformOrigin: "center", display: "block" }}
             />
           </button>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      <div
-        className={`mobile-menu ${mobileMenuOpen ? "mobile-menu--open" : ""}`}
-        style={{
-          backgroundColor: "rgba(8,8,8,0.97)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-        }}
-      >
-        <div className="mobile-menu__content">
-          <ul className="mobile-menu__links">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={`mobile-menu__link ${
-                    pathname === link.href ? "mobile-menu__link--active" : ""
-                  }`}
+      {/* Cinematic Full-Screen Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(10,10,10,0.95)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              zIndex: 90,
+              display: "flex",
+              flexDirection: "column",
+              padding: "2rem",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {navLinks.map((link, i) => (
+                  <motion.li
+                    key={link.href}
+                    initial={{ opacity: 0, y: 60, rotateX: -15 }}
+                    animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ 
+                      duration: 0.7, 
+                      delay: 0.1 + i * 0.1, 
+                      ease: [0.22, 1, 0.36, 1] 
+                    }}
+                    style={{ margin: "1.5rem 0", perspective: "1000px" }}
+                  >
+                    <Link
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      style={{
+                        fontSize: "clamp(3rem, 12vw, 6rem)",
+                        fontWeight: 800,
+                        color: pathname === link.href ? "#fff" : "rgba(255,255,255,0.4)",
+                        textDecoration: "none",
+                        textTransform: "uppercase",
+                        letterSpacing: "-0.04em",
+                        display: "block",
+                        lineHeight: 1,
+                        transition: "color 0.3s ease",
+                      }}
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              style={{ 
+                paddingBottom: "2rem",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderTop: "1px solid rgba(255,255,255,0.1)",
+                paddingTop: "2rem"
+              }}
+            >
+              {user ? (
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setMobileMenuOpen(false);
+                  }}
                   style={{
-                    color:
-                      pathname === link.href
-                        ? "#fff"
-                        : "rgba(255,255,255,0.6)",
+                    fontSize: "1.1rem",
+                    color: "#fff",
+                    background: "none",
+                    border: "none",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    cursor: "pointer",
+                    fontWeight: 600,
                   }}
                 >
-                  {link.label}
+                  Sign Out
+                </button>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    fontSize: "1.1rem",
+                    color: "#fff",
+                    textDecoration: "none",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    fontWeight: 600,
+                  }}
+                >
+                  Sign In
                 </Link>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mobile-menu__footer">
-            {user ? (
-              <button
-                onClick={handleSignOut}
-                className="mobile-menu__auth-btn"
-                style={{ color: "rgba(255,255,255,0.7)" }}
-              >
-                Sign Out
-              </button>
-            ) : (
-              <Link
-                href="/auth/login"
-                className="mobile-menu__auth-btn"
-                style={{ color: "rgba(255,255,255,0.7)" }}
-              >
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
+              )}
+              <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                Yarsha
+              </span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
+
