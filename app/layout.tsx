@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { CartProvider } from "@/context/cart-context";
 import LenisProvider from "@/components/lenis-provider";
+import GsapAnimations from "@/components/gsap-animations";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className={`${inter.variable}`}>
         <LenisProvider>
           <CartProvider>
+            <GsapAnimations />
             <div className="main-content">
               <Navbar />
               <main className="main-content__body">{children}</main>

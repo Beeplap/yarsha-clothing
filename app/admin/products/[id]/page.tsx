@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
-export default function NewProductPage() {
+export default function EditProductPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const supabase = createClient();
   const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
   
@@ -21,14 +23,41 @@ export default function NewProductPage() {
     is_featured: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Fetch categories
     supabase.from("categories").select("id, name").then(({ data }) => {
       if (data) setCategories(data);
     });
-  }, [supabase]);
+
+    // Fetch product details
+    if (id) {
+      supabase.from("products").select("*").eq("id", id).single().then(({ data, error }) => {
+        if (error) {
+          setError(error.message);
+        } else if (data) {
+          setFormData({
+            name: data.name || "",
+            slug: data.slug || "",
+            description: data.description || "",
+            price: data.price ? data.price.toString() : "",
+            compare_at_price: data.compare_at_price ? data.compare_at_price.toString() : "",
+            stock_quantity: data.stock_quantity !== null ? data.stock_quantity.toString() : "",
+            category_id: data.category_id || "",
+            is_featured: data.is_featured || false,
+          });
+          if (data.images && data.images.length > 0) {
+            setExistingImages(data.images);
+          }
+        }
+        setLoading(false);
+      });
+    }
+  }, [id, supabase]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -37,7 +66,7 @@ export default function NewProductPage() {
     } else {
       setFormData({ ...formData, [name]: value });
       
-      // Auto-generate slug from name
+      // Auto-generate slug from name if the name is changed, or they can manually edit it
       if (name === "name") {
         setFormData(prev => ({
           ...prev,
@@ -59,9 +88,9 @@ export default function NewProductPage() {
     setError(null);
 
     try {
-      let imageUrls: string[] = [];
+      let imageUrls = [...existingImages];
 
-      // 1. Upload Image to Storage if exists
+      // 1. Upload new Image to Storage if exists
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
@@ -77,11 +106,12 @@ export default function NewProductPage() {
           .from("product-images")
           .getPublicUrl(filePath);
 
+        // Replace existing images with the new one
         imageUrls = [publicUrl];
       }
 
-      // 2. Insert Product
-      const { error: insertError } = await supabase.from("products").insert({
+      // 2. Update Product
+      const { error: updateError } = await supabase.from("products").update({
         name: formData.name,
         slug: formData.slug,
         description: formData.description || null,
@@ -91,9 +121,9 @@ export default function NewProductPage() {
         category_id: formData.category_id || null,
         is_featured: formData.is_featured,
         images: imageUrls.length > 0 ? imageUrls : null
-      });
+      }).eq("id", id);
 
-      if (insertError) throw new Error(insertError.message);
+      if (updateError) throw new Error(updateError.message);
 
       router.push("/admin/products");
       router.refresh();
@@ -104,10 +134,12 @@ export default function NewProductPage() {
     }
   };
 
+  if (loading) return <div className="admin-page" style={{ padding: '2rem' }}>Loading product data...</div>;
+
   return (
     <div className="admin-page">
       <div className="admin-page__header">
-        <h1 className="admin-page__title">Add New Product</h1>
+        <h1 className="admin-page__title">Edit Product</h1>
         <Link href="/admin/products" className="admin-nav-link" style={{ textDecoration: 'underline' }}>
           Cancel
         </Link>
@@ -167,8 +199,15 @@ export default function NewProductPage() {
             <div className="admin-form-card" style={{ marginTop: '1.5rem' }}>
               <h2 className="admin-form-card__title">Media</h2>
               
+              {existingImages.length > 0 && !imageFile && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#a3a3a3', marginBottom: '0.5rem' }}>Current Image:</p>
+                  <img src={existingImages[0]} alt="Current" style={{ width: '100%', borderRadius: '4px', border: '1px solid #333' }} />
+                </div>
+              )}
+
               <div className="auth-field">
-                <label>Product Image</label>
+                <label>Upload New Image (Optional)</label>
                 <input type="file" accept="image/*" onChange={handleImageChange} className="auth-input" style={{ padding: '0.5rem' }} />
               </div>
             </div>
@@ -181,7 +220,7 @@ export default function NewProductPage() {
             </div>
             
             <button type="submit" className="auth-button" style={{ marginTop: '1.5rem' }} disabled={submitting}>
-              {submitting ? "Saving..." : "Save Product"}
+              {submitting ? "Updating..." : "Update Product"}
             </button>
           </div>
         </div>

@@ -18,65 +18,214 @@ export default function ParallaxShowcase() {
   const item3Ref = useRef<HTMLDivElement>(null);
   
   const textRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     if (!sectionRef.current) return;
     
-    // Select all refs
+    const section = sectionRef.current;
     const item1 = item1Ref.current;
     const item2 = item2Ref.current;
     const item3 = item3Ref.current;
     const text = textRef.current;
+    const heading = headingRef.current;
 
-    // Create the timeline synced to scroll
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top bottom",
-        end: "bottom top",
-        scrub: 1.5, // 1.5s smoothing effect
+    const ctx = gsap.context(() => {
+      // ── Character-by-character text reveal for heading ──────────────
+      if (heading) {
+        const originalText = heading.textContent || "";
+        heading.innerHTML = "";
+        heading.style.overflow = "hidden";
+
+        const chars: HTMLSpanElement[] = [];
+        for (const char of originalText) {
+          const span = document.createElement("span");
+          span.textContent = char === " " ? "\u00A0" : char;
+          span.style.display = "inline-block";
+          span.style.opacity = "0";
+          span.style.transform = "translateY(120%) rotateX(-90deg)";
+          span.style.willChange = "transform, opacity";
+          heading.appendChild(span);
+          chars.push(span);
+        }
+
+        ScrollTrigger.create({
+          trigger: heading,
+          start: "top 85%",
+          toggleActions: "play none none none",
+          onEnter: () => {
+            gsap.to(chars, {
+              opacity: 1,
+              y: 0,
+              rotateX: 0,
+              duration: 0.7,
+              stagger: 0.04,
+              ease: "power3.out",
+            });
+          },
+        });
       }
-    });
 
-    // 1st Item - Slides in from the left, slight rotation and scale
-    if (item1) {
-      tl.fromTo(item1, 
-        { x: "-100%", y: 100, rotation: -15, scale: 0.8, opacity: 0 },
-        { x: "0%", y: 0, rotation: 0, scale: 1, opacity: 1, ease: "power2.out", clearProps: "opacity" },
-        0 // Start at beginning of timeline
-      );
-    }
+      // ── Main scroll-synced timeline (more dramatic) ────────────────
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1.5,
+        },
+      });
 
-    // 2nd Item - Slides in from the right
-    if (item2) {
-      tl.fromTo(item2, 
-        { x: "100%", y: 150, rotation: 15, scale: 0.8, opacity: 0 },
-        { x: "0%", y: 0, rotation: 0, scale: 1, opacity: 1, ease: "power2.out", clearProps: "opacity" },
-        0.1 // Slight delay relative to scroll
-      );
-    }
+      // 1st Item - Dramatic slide from left with horizontal spread
+      if (item1) {
+        tl.fromTo(
+          item1,
+          {
+            x: "-120%",
+            y: 150,
+            rotation: -25,
+            scale: 0.6,
+            opacity: 0,
+          },
+          {
+            x: "-8%",
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            opacity: 1,
+            ease: "power2.out",
+            clearProps: "opacity",
+          },
+          0
+        );
+      }
 
-    // 3rd Item - Rises from bottom center
-    if (item3) {
-      tl.fromTo(item3, 
-        { y: 300, scale: 0.5, opacity: 0 },
-        { y: 0, scale: 1, opacity: 1, ease: "power2.out", clearProps: "opacity" },
-        0.2
-      );
-    }
+      // 2nd Item - Dramatic slide from right with horizontal spread
+      if (item2) {
+        tl.fromTo(
+          item2,
+          {
+            x: "120%",
+            y: 200,
+            rotation: 25,
+            scale: 0.6,
+            opacity: 0,
+          },
+          {
+            x: "8%",
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            opacity: 1,
+            ease: "power2.out",
+            clearProps: "opacity",
+          },
+          0.1
+        );
+      }
 
-    // Text Parallax effect
-    if (text) {
-      tl.fromTo(text,
-        { y: 150, opacity: 0 },
-        { y: -50, opacity: 1, ease: "power1.inOut" },
-        0
+      // 3rd Item (center) - Dramatic rise from bottom
+      if (item3) {
+        tl.fromTo(
+          item3,
+          {
+            y: 400,
+            scale: 0.3,
+            opacity: 0,
+            rotation: 10,
+          },
+          {
+            y: 0,
+            scale: 1,
+            opacity: 1,
+            rotation: 0,
+            ease: "power2.out",
+            clearProps: "opacity",
+          },
+          0.2
+        );
+      }
+
+      // Text parallax with more dramatic movement
+      if (text) {
+        tl.fromTo(
+          text,
+          { y: 200, opacity: 0 },
+          { y: -80, opacity: 1, ease: "power1.inOut" },
+          0
+        );
+      }
+
+      // ── Glow effect on image borders ───────────────────────────────
+      const imageWrappers = section.querySelectorAll(
+        ".parallax-showcase__image-wrapper"
       );
-    }
+      imageWrappers.forEach((wrapper) => {
+        // Create glow border overlay
+        const glowEl = document.createElement("div");
+        glowEl.style.cssText = `
+          position: absolute;
+          inset: 0;
+          border-radius: 1rem;
+          pointer-events: none;
+          z-index: 2;
+          opacity: 0;
+          border: 2px solid transparent;
+          background: linear-gradient(135deg, rgba(0,255,200,0.3), rgba(120,0,255,0.3)) border-box;
+          -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          box-shadow: 0 0 20px rgba(0,255,200,0.15), inset 0 0 20px rgba(120,0,255,0.1);
+        `;
+        (wrapper as HTMLElement).style.position = "relative";
+        wrapper.appendChild(glowEl);
+
+        ScrollTrigger.create({
+          trigger: wrapper,
+          start: "top 80%",
+          toggleActions: "play none none none",
+          onEnter: () => {
+            gsap.to(glowEl, {
+              opacity: 1,
+              duration: 1.2,
+              ease: "power2.inOut",
+            });
+            // Pulsating glow
+            gsap.to(glowEl, {
+              boxShadow:
+                "0 0 40px rgba(0,255,200,0.3), inset 0 0 40px rgba(120,0,255,0.2)",
+              duration: 2,
+              repeat: -1,
+              yoyo: true,
+              ease: "sine.inOut",
+            });
+          },
+        });
+      });
+
+      // ── Horizontal spread as you scroll past ───────────────────────
+      const spreadTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "40% center",
+          end: "bottom top",
+          scrub: 2,
+        },
+      });
+
+      if (item1) {
+        spreadTl.to(item1, { x: "-15%", ease: "none" }, 0);
+      }
+      if (item2) {
+        spreadTl.to(item2, { x: "15%", ease: "none" }, 0);
+      }
+      if (item3) {
+        spreadTl.to(item3, { y: -20, ease: "none" }, 0);
+      }
+    }, section);
 
     return () => {
-      // Cleanup ScrollTrigger instances on unmount
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      ctx.revert();
     };
   }, []);
 
@@ -85,7 +234,7 @@ export default function ParallaxShowcase() {
       <div className="parallax-showcase__container">
         
         <div ref={textRef} className="parallax-showcase__text">
-          <h2>The Next Dimension</h2>
+          <h2 ref={headingRef}>The Next Dimension</h2>
           <p>Experience ultra-premium 3D wearables designed for the modern metaverse and beyond. Immersive. Futuristic. Yarsha.</p>
         </div>
 

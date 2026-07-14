@@ -20,6 +20,7 @@ export default function CheckoutPage() {
     postalCode: "",
     phone: ""
   });
+  const [paymentMethod, setPaymentMethod] = useState("card");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,8 +79,23 @@ export default function CheckoutPage() {
       // Clear local cart context state
       await clearCart();
       
-      // Redirect to success
-      router.push(`/checkout/success?order=${orderId}`);
+      // Initialize payment session
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, paymentMethod })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Payment initialization failed");
+      
+      // Redirect to payment provider
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        // Fallback
+        router.push(`/checkout/success?order=${orderId}`);
+      }
       
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred during checkout.");
@@ -198,6 +214,27 @@ export default function CheckoutPage() {
                   className="auth-input"
                   required
                 />
+              </div>
+            </section>
+
+            <section className="checkout-form__section">
+              <h2 className="checkout-form__title">Payment Method</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', border: `1px solid ${paymentMethod === 'card' ? '#00d4ff' : 'rgba(255,255,255,0.1)'}`, borderRadius: '0.5rem', background: paymentMethod === 'card' ? 'rgba(0, 212, 255, 0.05)' : 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
+                  <input type="radio" name="paymentMethod" value="card" checked={paymentMethod === 'card'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ accentColor: '#00d4ff', width: '1.2rem', height: '1.2rem' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 500, color: '#fff' }}>Credit / Debit Card (Stripe)</span>
+                    <span style={{ fontSize: '0.8rem', color: '#a3a3a3' }}>Secure global payments</span>
+                  </div>
+                </label>
+                
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', border: `1px solid ${paymentMethod === 'wallet' ? '#22c55e' : 'rgba(255,255,255,0.1)'}`, borderRadius: '0.5rem', background: paymentMethod === 'wallet' ? 'rgba(34, 197, 94, 0.05)' : 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
+                  <input type="radio" name="paymentMethod" value="wallet" checked={paymentMethod === 'wallet'} onChange={(e) => setPaymentMethod(e.target.value)} style={{ accentColor: '#22c55e', width: '1.2rem', height: '1.2rem' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 500, color: '#fff' }}>Digital Wallet</span>
+                    <span style={{ fontSize: '0.8rem', color: '#a3a3a3' }}>Pay via eSewa or Khalti</span>
+                  </div>
+                </label>
               </div>
             </section>
 

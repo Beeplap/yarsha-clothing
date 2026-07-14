@@ -69,7 +69,7 @@ export default async function AdminProductsPage() {
                   </span>
                 </td>
                 <td>
-                  <button className="admin-table__action">Edit</button>
+                  <Link href={`/admin/products/${product.id}`} className="admin-table__action">Edit</Link>
                 </td>
               </tr>
             ))}

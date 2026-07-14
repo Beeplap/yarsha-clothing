@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useCart } from "@/context/cart-context";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
-  const { items, loading, updateQuantity, removeFromCart } = useCart();
+  const { items, loading, updateQuantity, removeFromCart, cartId, clearCart } = useCart();
+  const supabase = createClient();
+  const router = useRouter();
 
   if (loading) {
     return (
@@ -21,6 +25,65 @@ export default function CartPage() {
     (acc, item) => acc + (item.product ? item.product.price * item.quantity : 0),
     0
   );
+
+  const handleWhatsAppCheckout = async () => {
+    // 1. Generate WhatsApp message content
+    const phoneNumber = "9766272646";
+    let message = "Hello YARSHA, I would like to place an order:\n\n";
+    
+    items.forEach(item => {
+      const product = item.product;
+      if (!product) return;
+      message += `${item.quantity}x ${product.name} ${item.size ? `(Size: ${item.size})` : ''} - Rs. ${(product.price * item.quantity).toLocaleString()}\n`;
+    });
+    
+    message += `\n*Total: Rs. ${subtotal.toLocaleString()}*`;
+    message += "\n\nPlease let me know the next steps for delivery and payment.";
+    
+    const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+    try {
+      // 2. Call RPC to deduct stock, create order, and clear cart
+      // We pass an empty shipping address since it's handled via WhatsApp
+      if (cartId) {
+        const { data: orderId, error } = await supabase.rpc("checkout_cart", {
+          p_cart_id: cartId,
+          p_shipping_address: { via: "whatsapp" }
+        });
+        
+        if (error) {
+          const errorDetails = JSON.stringify({
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          }, null, 2);
+          console.error("Failed to deduct stock:", errorDetails);
+          alert(`There was an issue processing your order:\n${error.message}\n\nMake sure you ran the SQL migration provided previously!`);
+          return;
+        }
+
+        // Fire confirmation email asynchronously
+        if (orderId) {
+          fetch("/api/emails/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId, type: "confirmation" })
+          }).catch(err => console.error("Failed to send email", err));
+        }
+      }
+      
+      // 3. Clear local cart
+      await clearCart();
+      
+      // 4. Redirect to WhatsApp (avoid popup blockers)
+      window.location.href = whatsappLink;
+      
+    } catch (err) {
+      console.error(err);
+      alert("Failed to process order.");
+    }
+  };
 
   return (
     <div className="cart-page">
@@ -104,7 +167,7 @@ export default function CartPage() {
               </div>
               <div className="cart-page__summary-row">
                 <span>Shipping</span>
-                <span>Calculated at checkout</span>
+                <span>Calculated via WhatsApp</span>
               </div>
               
               <div className="cart-page__summary-total">
@@ -112,9 +175,16 @@ export default function CartPage() {
                 <span>Rs. {subtotal.toLocaleString()}</span>
               </div>
               
-              <Link href="/checkout" className="cart-page__checkout-btn">
-                Proceed to Checkout
-              </Link>
+              <button 
+                onClick={handleWhatsAppCheckout}
+                className="cart-page__checkout-btn"
+                style={{ background: '#25D366', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', border: 'none', width: '100%', padding: '1rem', fontSize: '1rem', fontWeight: 600, borderRadius: '0.5rem' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                Checkout via WhatsApp
+              </button>
             </div>
           </div>
         )}

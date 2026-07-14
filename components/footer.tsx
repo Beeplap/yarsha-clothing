@@ -1,16 +1,118 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const pathname = usePathname();
+  const footerRef = useRef<HTMLElement>(null);
+  const dividerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!footerRef.current) return;
+
+    const footer = footerRef.current;
+
+    const ctx = gsap.context(() => {
+      // Stagger grid columns fading up
+      const gridCols = footer.querySelectorAll(
+        ".footer__brand, .footer__col"
+      );
+      if (gridCols.length > 0) {
+        gsap.set(gridCols, { y: 40, opacity: 0 });
+
+        ScrollTrigger.create({
+          trigger: footer,
+          start: "top 85%",
+          toggleActions: "play none none none",
+          onEnter: () => {
+            gsap.to(gridCols, {
+              y: 0,
+              opacity: 1,
+              duration: 0.8,
+              stagger: 0.15,
+              ease: "power3.out",
+            });
+          },
+        });
+      }
+
+      // Glowing divider line animation
+      const divider = dividerRef.current;
+      if (divider) {
+        // Set initial state — a subtle gradient line
+        gsap.set(divider, {
+          backgroundImage:
+            "linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)",
+          backgroundSize: "200% 100%",
+          backgroundPosition: "-100% 0",
+          height: "1px",
+        });
+
+        ScrollTrigger.create({
+          trigger: divider,
+          start: "top 90%",
+          toggleActions: "play none none none",
+          onEnter: () => {
+            // Sweep glow across
+            gsap.to(divider, {
+              backgroundImage:
+                "linear-gradient(90deg, transparent, rgba(0,255,200,0.4), rgba(120,0,255,0.3), transparent)",
+              backgroundPosition: "100% 0",
+              duration: 1.5,
+              ease: "power2.inOut",
+            });
+            // Then settle to a subtle glow
+            gsap.to(divider, {
+              backgroundImage:
+                "linear-gradient(90deg, transparent 5%, rgba(0,255,200,0.15) 30%, rgba(120,0,255,0.1) 70%, transparent 95%)",
+              backgroundPosition: "0% 0",
+              delay: 1.5,
+              duration: 1,
+              ease: "power1.out",
+            });
+          },
+        });
+      }
+
+      // Bottom section fade in
+      const bottomSection = footer.querySelector(".footer__bottom");
+      if (bottomSection) {
+        gsap.set(bottomSection, { y: 20, opacity: 0 });
+        ScrollTrigger.create({
+          trigger: bottomSection,
+          start: "top 95%",
+          toggleActions: "play none none none",
+          onEnter: () => {
+            gsap.to(bottomSection, {
+              y: 0,
+              opacity: 1,
+              duration: 0.7,
+              ease: "power3.out",
+              delay: 0.3,
+            });
+          },
+        });
+      }
+    }, footer);
+
+    return () => {
+      ctx.revert();
+    };
+  }, []);
 
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <footer className="footer">
+    <footer className="footer" ref={footerRef}>
       <div className="footer__container">
         {/* Top Section */}
         <div className="footer__grid">
@@ -56,7 +158,7 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="footer__divider" />
+        <div className="footer__divider" ref={dividerRef} />
 
         {/* Bottom Section */}
         <div className="footer__bottom">

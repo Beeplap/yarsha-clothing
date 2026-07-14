@@ -1,29 +1,35 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import Link from "next/link";
 import type { Category } from "@/types/database";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-// Predefined visuals for category cards
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+// Predefined visuals for category cards — darker, neon-infused
 const CATEGORY_VISUALS: Record<string, { gradient: string; icon: string }> = {
   men: {
-    gradient: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+    gradient: "linear-gradient(135deg, #0a0a1a 0%, #0d1b3e 50%, #0ff0fc22 100%)",
     icon: "👔",
   },
   women: {
-    gradient: "linear-gradient(135deg, #4a1942 0%, #6b2fa0 100%)",
+    gradient: "linear-gradient(135deg, #10051a 0%, #3d0066 50%, #c840ff22 100%)",
     icon: "👗",
   },
   accessories: {
-    gradient: "linear-gradient(135deg, #2d3436 0%, #636e72 100%)",
+    gradient: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #00ffc822 100%)",
     icon: "⌚",
   },
   "winter-wear": {
-    gradient: "linear-gradient(135deg, #0c2461 0%, #1e3799 100%)",
+    gradient: "linear-gradient(135deg, #050510 0%, #0c1445 50%, #4060ff22 100%)",
     icon: "🧥",
   },
   default: {
-    gradient: "linear-gradient(135deg, #2d3436 0%, #636e72 100%)",
+    gradient: "linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #ffffff11 100%)",
     icon: "🏷️",
   },
 };
@@ -34,6 +40,7 @@ interface CategorySliderProps {
 
 export default function CategorySlider({ categories }: CategorySliderProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -45,8 +52,54 @@ export default function CategorySlider({ categories }: CategorySliderProps) {
     }
   };
 
+  useEffect(() => {
+    if (!sliderRef.current) return;
+
+    const slider = sliderRef.current;
+
+    const ctx = gsap.context(() => {
+      const cards = slider.querySelectorAll(".cat-slider__card");
+
+      if (cards.length > 0) {
+        gsap.set(cards, { y: 50, opacity: 0, scale: 0.95 });
+
+        ScrollTrigger.create({
+          trigger: slider,
+          start: "top 85%",
+          toggleActions: "play none none none",
+          onEnter: () => {
+            gsap.to(cards, {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              duration: 0.7,
+              stagger: 0.12,
+              ease: "power3.out",
+            });
+          },
+        });
+
+        // Subtle floating animation on each card (continuous)
+        cards.forEach((card, i) => {
+          gsap.to(card, {
+            y: "-=6",
+            duration: 2 + i * 0.3,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: i * 0.2,
+          });
+        });
+      }
+    }, slider);
+
+    return () => {
+      ctx.revert();
+    };
+  }, [categories]);
+
   return (
-    <div className="cat-slider">
+    <div className="cat-slider" ref={sliderRef}>
       <button
         className="cat-slider__arrow cat-slider__arrow--left"
         onClick={() => scroll("left")}
