@@ -384,3 +384,71 @@
   margin-bottom: 1.25rem;
   color: var(--color-neutral-900);
 }
+
+/* =============================================
+   FORM FIELDS (Auth & Admin)
+   ============================================= */
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.auth-field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-neutral-700);
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  color: var(--color-neutral-900);
+  background-color: white;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.auth-input:hover {
+  border-color: var(--color-neutral-400);
+}
+
+.auth-input:focus {
+  border-color: var(--color-neutral-900);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.auth-input::placeholder {
+  color: var(--color-neutral-400);
+}
+
+.auth-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: white;
+  background-color: var(--color-neutral-900);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-button:hover {
+  background-color: var(--color-neutral-800);
+  transform: translateY(-1px);
+}
+
+.auth-button:disabled {
+  background-color: var(--color-neutral-400);
+  cursor: not-allowed;
+  transform: none;
+}
