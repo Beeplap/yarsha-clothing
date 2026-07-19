@@ -1,5 +1,5 @@
 -- ============================================================
--- Yarsha Clothing — Initial Database Schema
+-- Yarsha Wears — Initial Database Schema
 -- Supabase Migration
 -- ============================================================
 
@@ -61,7 +61,7 @@ CREATE TABLE public.products (
   is_featured       BOOLEAN NOT NULL DEFAULT false,
   created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE public.products IS 'Clothing products available for sale.';
+COMMENT ON TABLE public.products IS 'Wears products available for sale.';
 
 -- 3d. carts
 CREATE TABLE public.carts (

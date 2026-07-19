@@ -4,9 +4,9 @@ import type { Metadata } from "next";
 import type { Product, Category } from "@/types/database";
 
 export const metadata: Metadata = {
-  title: "Shop All Products | Yarsha Clothing",
+  title: "Shop All Products | Yarsha Wears",
   description:
-    "Browse the full Yarsha Clothing collection. Filter by category, price, and more.",
+    "Browse the full Yarsha Wears collection. Filter by category, price, and more.",
 };
 
 type PageProps = {
@@ -30,7 +30,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <div className="products-page__header">
         <h1 className="products-page__title">Our Collection</h1>
         <p className="products-page__subtitle">
-          Discover premium clothing crafted with care and purpose.
+          Discover premium wears crafted with care and purpose.
         </p>
       </div>
       <ProductGrid

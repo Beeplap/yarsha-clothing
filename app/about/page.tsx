@@ -2,8 +2,8 @@ import Link from "next/link";
 import AboutClientAnimations from "@/components/about-client-animations";
 
 export const metadata = {
-  title: "About Us | Yarsha Clothing",
-  description: "Learn more about Yarsha Clothing, a premium sub-brand of Yarsha Byte.",
+  title: "About Us | Yarsha Wears",
+  description: "Learn more about Yarsha Wears, a premium sub-brand of Yarsha Byte.",
 };
 
 export default function AboutPage() {
@@ -29,7 +29,7 @@ export default function AboutPage() {
           <p className="about-hero__subtitle" style={{ fontSize: '1.25rem', color: '#a3a3a3', maxWidth: '600px', margin: '0 auto', lineHeight: 1.6 }}>
             Where technology meets textile. Where precision meets passion.
             <br />
-            Yarsha Clothing is the wearable future, crafted today.
+            Yarsha Wears is the wearable future, crafted today.
           </p>
         </div>
       </section>
@@ -65,7 +65,7 @@ export default function AboutPage() {
             
             <p style={{ fontSize: '1.5rem', lineHeight: 1.8, color: '#d4d4d4' }}>
               Born from the creative ecosystem of <strong>Yarsha Byte</strong>,
-              Yarsha Clothing was founded with a singular vision: to create
+              Yarsha Wears was founded with a singular vision: to create
               apparel that reflects the precision, ambition, and minimalism of
               modern technology design.
             </p>

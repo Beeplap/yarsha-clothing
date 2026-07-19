@@ -123,7 +123,7 @@ export default function Footer() {
               <span className="footer__logo-sub">CLOTHING</span>
             </Link>
             <p className="footer__tagline">
-              Premium clothing crafted with purpose. A sub-brand of Yarsha Byte.
+              Premium wears crafted with purpose. A sub-brand of Yarsha Byte.
             </p>
           </div>
 
@@ -163,7 +163,7 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="footer__bottom">
           <p className="footer__copyright">
-            &copy; {currentYear} Yarsha Clothing. A sub-brand of{" "}
+            &copy; {currentYear} Yarsha Wears. A sub-brand of{" "}
             <a
               href="https://yarshabyte.com"
               target="_blank"

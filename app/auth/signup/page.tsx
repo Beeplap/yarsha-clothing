@@ -70,7 +70,7 @@ export default function SignUpPage() {
             YARSHA
           </Link>
           <h1 className="auth-title">Create your account</h1>
-          <p className="auth-subtitle">Join the Yarsha Clothing community</p>
+          <p className="auth-subtitle">Join the Yarsha Wears community</p>
         </div>
 
         <form onSubmit={handleSignUp} className="auth-form">

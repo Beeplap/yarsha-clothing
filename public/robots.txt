@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Disallow crawling of private or build paths
+Disallow: /api/
+Disallow: /.next/
+
+# Sitemap location (update to your live domain if it changes)
+Sitemap: https://yarshabyte.vercel.app/sitemap.xml
+
+# Crawl friendly rate
+Crawl-delay: 1
+
+# Specific directives for major bots can be added below
+# User-agent: Googlebot
+# Allow: /

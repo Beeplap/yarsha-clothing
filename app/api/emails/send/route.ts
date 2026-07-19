@@ -103,7 +103,7 @@ export async function POST(req: Request) {
     }
 
     const { data, error: resendError } = await resend.emails.send({
-      from: "YARSHA <orders@yarshaclothing.com>", // You must verify this domain in Resend
+      from: "YARSHA <orders@yarshawears.com>", // You must verify this domain in Resend
       to: [customerEmail],
       subject: subject,
       html: htmlContent,

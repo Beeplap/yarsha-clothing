@@ -22,9 +22,9 @@ export async function generateMetadata({
   if (!product) return { title: "Product Not Found" };
 
   return {
-    title: `${product.name} | Yarsha Clothing`,
+    title: `${product.name} | Yarsha Wears`,
     description:
-      product.description || `Shop ${product.name} at Yarsha Clothing.`,
+      product.description || `Shop ${product.name} at Yarsha Wears.`,
   };
 }
 
