@@ -34,6 +34,8 @@ export interface Product {
   stock_quantity: number;
   category_id: string | null;
   images: string[];
+  sizes?: string[];
+  colors?: string[];
   is_featured: boolean;
   created_at: string;
   // Joined relation (optional)

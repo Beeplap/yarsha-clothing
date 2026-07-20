@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ContactSection } from "@/components/sections/contact-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { WearsSection } from "@/components/sections/wears-section";
+import { TopProductsSection } from "@/components/sections/top-products-section";
 import { createClient } from "@/utils/supabase/server";
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export default async function Home() {
   const supabase = await createClient();
   const { data: products } = await supabase
     .from("products")
-    .select("name, images")
+    .select("*, categories(name)")
     .limit(7);
 
   const wearsImages = products?.flatMap(p => 
@@ -36,6 +37,7 @@ export default async function Home() {
       <main>
         <HeroSection />
         <WearsSection products={wearsImages} />
+        <TopProductsSection products={products || []} />
         <ContactSection />
       </main>
     </>

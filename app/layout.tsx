@@ -4,7 +4,7 @@ import { PageLoader } from "@/components/page-loader";
 import { PageWaveTransition } from "@/components/page-wave-transition";
 import { ScrollHexBackground } from "@/components/scroll-hex-background";
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
-import { SiteHeader } from "@/components/site-header";
+import Navbar from "@/components/navbar";
 import { HeroCanvasShell } from "@/components/hero/hero-canvas-shell";
 import { CartProvider } from "@/context/cart-context";
 
@@ -115,12 +115,12 @@ export default function RootLayout({
         <PageLoader>
           <PageWaveTransition />
           <HeroCanvasShell />
-          <SiteHeader />
           <div className="site-frame">
             <ScrollHexBackground />
             <div className="site-frame-content">
               <SmoothScrollProvider>
                 <CartProvider>
+                  <Navbar />
                   {children}
                 </CartProvider>
               </SmoothScrollProvider>

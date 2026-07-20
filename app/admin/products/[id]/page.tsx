@@ -22,6 +22,8 @@ export default function EditProductPage() {
     category_id: "",
     is_featured: false,
   });
+  const [sizes, setSizes] = useState("");
+  const [colors, setColors] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -53,6 +55,8 @@ export default function EditProductPage() {
           if (data.images && data.images.length > 0) {
             setExistingImages(data.images);
           }
+          if (data.sizes) setSizes(data.sizes.join(", "));
+          if (data.colors) setColors(data.colors.join(", "));
         }
         setLoading(false);
       });
@@ -120,7 +124,9 @@ export default function EditProductPage() {
         stock_quantity: parseInt(formData.stock_quantity, 10),
         category_id: formData.category_id || null,
         is_featured: formData.is_featured,
-        images: imageUrls.length > 0 ? imageUrls : null
+        images: imageUrls.length > 0 ? imageUrls : null,
+        sizes: sizes ? sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
+        colors: colors ? colors.split(',').map(c => c.trim()).filter(Boolean) : []
       }).eq("id", id);
 
       if (updateError) throw new Error(updateError.message);
@@ -173,6 +179,18 @@ export default function EditProductPage() {
                 <option value="">Select category...</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+            </div>
+          </div>
+
+          <div className="admin-form-card" style={{ marginTop: '1.5rem' }}>
+            <h2 className="admin-form-card__title">Product Variants</h2>
+            <div className="auth-field" style={{ marginTop: '1rem' }}>
+              <label>Sizes (Comma separated, e.g. S, M, L, XL)</label>
+              <input type="text" value={sizes} onChange={e => setSizes(e.target.value)} placeholder="S, M, L" className="auth-input" />
+            </div>
+            <div className="auth-field" style={{ marginTop: '1rem' }}>
+              <label>Colors (Comma separated, e.g. Red, Blue, Black)</label>
+              <input type="text" value={colors} onChange={e => setColors(e.target.value)} placeholder="Red, Black" className="auth-input" />
             </div>
           </div>
 

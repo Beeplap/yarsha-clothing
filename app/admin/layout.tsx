@@ -23,14 +23,7 @@ export default function AdminLayout({
     <div className="admin-layout">
       {/* Sidebar */}
       <aside className="admin-sidebar">
-        <div className="admin-sidebar__header">
-          <Link href="/admin" className="admin-sidebar__logo">
-            YARSHA
-            <span>ADMIN</span>
-          </Link>
-        </div>
-
-        <nav className="admin-sidebar__nav">
+        <nav className="admin-sidebar__nav" style={{ marginTop: '2rem' }}>
           <Link
             href="/admin"
             className={`admin-nav-link ${
@@ -56,6 +49,18 @@ export default function AdminLayout({
               <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" />
             </svg>
             Products
+          </Link>
+
+          <Link
+            href="/admin/categories"
+            className={`admin-nav-link ${
+              pathname.startsWith("/admin/categories") ? "admin-nav-link--active" : ""
+            }`}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+            Categories
           </Link>
 
           <Link

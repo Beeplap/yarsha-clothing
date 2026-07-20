@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { LogOut, Package, User, MapPin, Heart } from "lucide-react";
 
 export default async function AccountLayout({
   children,
@@ -11,25 +12,39 @@ export default async function AccountLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login?redirect=/account/orders");
+    redirect("/auth/login?redirect=/account");
   }
 
   return (
-    <div className="account-layout" style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 1.5rem', display: 'flex', gap: '2rem', minHeight: '80vh' }}>
-      <aside className="account-sidebar" style={{ width: '250px', flexShrink: 0 }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '2rem' }}>My Account</h2>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <Link href="/account/orders" style={{ padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', color: '#00d4ff', fontWeight: 500 }}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 min-h-[80vh] font-sans text-black">
+      <aside className="w-full md:w-64 shrink-0">
+        <h2 className="text-2xl font-bold tracking-tight mb-8">MY ACCOUNT</h2>
+        <nav className="flex flex-col space-y-2">
+          <Link href="/account" className="flex items-center px-4 py-3 bg-gray-100 hover:bg-gray-200 font-bold uppercase text-sm tracking-wider transition-colors">
+            <User className="mr-3 w-5 h-5" />
+            Dashboard
+          </Link>
+          <Link href="/account/orders" className="flex items-center px-4 py-3 hover:bg-gray-100 font-bold uppercase text-sm tracking-wider transition-colors">
+            <Package className="mr-3 w-5 h-5" />
             Order History
           </Link>
-          <form action="/auth/logout" method="post">
-            <button type="submit" style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.75rem 1rem', width: '100%', textAlign: 'left', fontWeight: 500 }}>
+          <Link href="/account/addresses" className="flex items-center px-4 py-3 hover:bg-gray-100 font-bold uppercase text-sm tracking-wider transition-colors">
+            <MapPin className="mr-3 w-5 h-5" />
+            Addresses
+          </Link>
+          <Link href="/wishlist" className="flex items-center px-4 py-3 hover:bg-gray-100 font-bold uppercase text-sm tracking-wider transition-colors">
+            <Heart className="mr-3 w-5 h-5" />
+            Wishlist
+          </Link>
+          <form action="/auth/logout" method="post" className="pt-4 mt-4 border-t border-gray-200">
+            <button type="submit" className="flex items-center w-full px-4 py-3 hover:bg-red-50 text-red-600 font-bold uppercase text-sm tracking-wider transition-colors text-left">
+              <LogOut className="mr-3 w-5 h-5" />
               Sign Out
             </button>
           </form>
         </nav>
       </aside>
-      <main className="account-content" style={{ flexGrow: 1 }}>
+      <main className="flex-1 bg-white p-6 md:p-8 border border-gray-200 shadow-sm">
         {children}
       </main>
     </div>

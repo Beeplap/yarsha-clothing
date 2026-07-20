@@ -1,37 +1,30 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useCart } from "@/context/cart-context";
-import gsap from "gsap";
+import { menuLinks } from "@/data/nav";
+import { Search, User as UserIcon, Heart, ShoppingBag, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const pathname = usePathname();
   const supabase = createClient();
   const { items } = useCart();
 
-  const navRef = useRef<HTMLElement>(null);
-  const logoRef = useRef<HTMLAnchorElement>(null);
-  const linksRef = useRef<HTMLUListElement>(null);
-  const actionsRef = useRef<HTMLDivElement>(null);
-  const hasAnimated = useRef(false);
-
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
   useEffect(() => {
-    // Get initial user
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -42,385 +35,164 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    // Avoid synchronous state update in effect
     const timeout = setTimeout(() => {
       setMobileMenuOpen(false);
+      setHoveredCategory(null);
     }, 0);
     return () => clearTimeout(timeout);
   }, [pathname]);
 
-  // GSAP entrance animation
-  useEffect(() => {
-    if (hasAnimated.current) return;
-    if (!logoRef.current || !linksRef.current || !actionsRef.current) return;
-    hasAnimated.current = true;
-
-    const logo = logoRef.current;
-    const linkItems = linksRef.current.querySelectorAll("li");
-    const actions = actionsRef.current;
-
-    gsap.set(logo, { x: -40, opacity: 0 });
-    gsap.set(linkItems, { y: -15, opacity: 0 });
-    gsap.set(actions, { x: 40, opacity: 0 });
-
-    const tl = gsap.timeline({ delay: 0.3 });
-
-    tl.to(logo, {
-      x: 0,
-      opacity: 1,
-      duration: 0.7,
-      ease: "power3.out",
-    })
-      .to(
-        linkItems,
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.5,
-          stagger: 0.1,
-          ease: "power3.out",
-        },
-        "-=0.4"
-      )
-      .to(
-        actions,
-        {
-          x: 0,
-          opacity: 1,
-          duration: 0.6,
-          ease: "power3.out",
-        },
-        "-=0.3"
-      );
-  }, []);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  };
-
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/products", label: "Collections" },
-    { href: "/about", label: "About" },
-  ];
-
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <>
-      <nav
-        ref={navRef}
-        className={`navbar ${scrolled ? "navbar--scrolled" : ""}`}
-        style={{
-          ...(scrolled
-            ? {
-                backgroundColor: "rgba(10,10,10,0.85)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-              }
-            : {}),
-        }}
-      >
-        <div className="navbar__container">
-          {/* Logo */}
-          <Link href="/" className="navbar__logo" ref={logoRef} style={{ position: "relative", zIndex: 100 }}>
-            <span className="navbar__logo-text" style={{ color: "#fff" }}>
-              YARSHA
-            </span>
-            <span
-              className="navbar__logo-sub"
-              style={{ color: "rgba(255,255,255,0.5)" }}
-            >
-              CLOTHING
-            </span>
-          </Link>
+    <header className="w-full bg-white relative z-50 shadow-sm font-sans">
+      {/* Top Utility Bar */}
+      <div className="hidden md:flex justify-end items-center px-8 py-1.5 text-xs font-medium text-gray-700 space-x-4 bg-gray-50 border-b border-gray-100">
+        <Link href="/store-finder" className="hover:underline">store finder</Link>
+        <Link href="/help" className="hover:underline">help</Link>
+        <Link href="/orders-returns" className="hover:underline">orders and returns</Link>
+        <Link href="/gift-cards" className="hover:underline">gift cards</Link>
+        <Link href="/account" className="hover:underline">join adiClub</Link>
+      </div>
 
-          {/* Desktop Navigation */}
-          <ul className="navbar__links" ref={linksRef}>
-            {navLinks.map((link) => (
-              <li key={link.href}>
+      {/* Main Navbar */}
+      <div className="flex items-center justify-between px-4 md:px-8 h-16 md:h-20 bg-white">
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden p-2 text-black"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-2 shrink-0">
+          <svg className="w-10 h-10 md:w-16 md:h-16 text-black" viewBox="0 0 200 200" fill="currentColor">
+            <path d="M100 0L0 200H50L125 50L100 0Z" />
+            <path d="M150 0L50 200H100L175 50L150 0Z" />
+            <path d="M200 0L100 200H150L225 50L200 0Z" />
+          </svg>
+          <span className="font-bold text-xl tracking-tighter hidden lg:block uppercase">Yarsha</span>
+        </Link>
+
+        {/* Desktop Categories */}
+        <nav className="hidden md:flex flex-1 justify-center h-full">
+          <ul className="flex items-center space-x-6 h-full">
+            {menuLinks.map((category) => (
+              <li
+                key={category.label}
+                className="h-full flex items-center"
+                onMouseEnter={() => setHoveredCategory(category.label)}
+                onMouseLeave={() => setHoveredCategory(null)}
+              >
                 <Link
-                  href={link.href}
-                  className={`navbar__link ${
-                    pathname === link.href ? "navbar__link--active" : ""
-                  }`}
-                  style={{
-                    color:
-                      pathname === link.href
-                        ? "#fff"
-                        : "rgba(255,255,255,0.6)",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#fff")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color =
-                      pathname === link.href
-                        ? "#fff"
-                        : "rgba(255,255,255,0.6)")
-                  }
+                  href={category.href}
+                  className={`text-sm font-bold tracking-widest text-black hover:underline underline-offset-8 decoration-2 ${category.label === 'SALE' ? 'text-red-600' : ''}`}
                 >
-                  {link.label}
+                  {category.label}
                 </Link>
+                
+                {/* Mega Menu */}
+                {category.megaMenu && hoveredCategory === category.label && (
+                  <div className="absolute top-full left-0 w-full bg-white border-t border-gray-200 shadow-xl py-8 px-8 flex justify-center space-x-16 transition-opacity duration-200 z-50">
+                    {category.megaMenu.map((col) => (
+                      <div key={col.title} className="flex flex-col min-w-[150px]">
+                        <h3 className="font-bold text-sm mb-4 tracking-wider">{col.title}</h3>
+                        <ul className="space-y-2">
+                          {col.links.map((link) => (
+                            <li key={link.label}>
+                              <Link href={link.href} className="text-gray-600 text-sm hover:text-black hover:underline">
+                                {link.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
+        </nav>
 
-          {/* Desktop Actions */}
-          <div className="navbar__actions" ref={actionsRef}>
-            {/* Search Icon */}
-            <button
-              className="navbar__icon-btn"
-              aria-label="Search"
-              style={{ color: "rgba(255,255,255,0.7)" }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-            </button>
-
-            {/* User / Auth */}
-            {user ? (
-              <div className="navbar__user-menu">
-                <button
-                  className="navbar__icon-btn"
-                  aria-label="Account"
-                  style={{ color: "rgba(255,255,255,0.7)" }}
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="navbar__signout-btn"
-                  style={{ color: "rgba(255,255,255,0.6)" }}
-                >
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/auth/login"
-                className="navbar__auth-btn"
-                style={{ color: "rgba(255,255,255,0.7)" }}
-              >
-                Sign In
-              </Link>
-            )}
-
-            {/* Cart Icon */}
-            <Link
-              href="/cart"
-              className="navbar__icon-btn"
-              aria-label="Cart"
-              style={{ position: "relative", color: "rgba(255,255,255,0.7)", zIndex: 100 }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                <path d="M3 6h18" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-              {cartItemCount > 0 && (
-                <span className="navbar__cart-badge">{cartItemCount}</span>
-              )}
-            </Link>
+        {/* Right Actions */}
+        <div className="flex items-center space-x-4">
+          <div className="hidden lg:flex items-center bg-gray-100 rounded-sm px-3 py-1.5 focus-within:bg-gray-200 transition-colors">
+            <input 
+              type="text" 
+              placeholder="Search" 
+              className="bg-transparent border-none outline-none text-sm w-32 placeholder-gray-500 text-black"
+            />
+            <Search size={18} className="text-black ml-2" />
           </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            className="navbar__hamburger"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-            aria-expanded={mobileMenuOpen}
-            style={{
-              position: "relative",
-              zIndex: 100,
-              width: "28px",
-              height: "20px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
-            }}
-          >
-            <motion.span
-              animate={mobileMenuOpen ? { rotate: 45, y: 9 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ width: "100%", height: "2px", backgroundColor: "#fff", transformOrigin: "center", display: "block" }}
-            />
-            <motion.span
-              animate={mobileMenuOpen ? { opacity: 0, x: 20 } : { opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ width: "100%", height: "2px", backgroundColor: "#fff", display: "block" }}
-            />
-            <motion.span
-              animate={mobileMenuOpen ? { rotate: -45, y: -9 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ width: "100%", height: "2px", backgroundColor: "#fff", transformOrigin: "center", display: "block" }}
-            />
-          </button>
+          
+          <Link href={user ? "/account" : "/auth/login"} className="text-black hover:opacity-70 p-1">
+            <UserIcon size={22} />
+          </Link>
+          <Link href="/wishlist" className="hidden sm:block text-black hover:opacity-70 p-1">
+            <Heart size={22} />
+          </Link>
+          <Link href="/cart" className="text-black hover:opacity-70 p-1 relative">
+            <ShoppingBag size={22} />
+            {cartItemCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-black text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                {cartItemCount}
+              </span>
+            )}
+          </Link>
         </div>
-      </nav>
+      </div>
 
-      {/* Cinematic Full-Screen Mobile Menu Overlay */}
+      {/* Mobile Menu (Simplified) */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              backgroundColor: "rgba(10,10,10,0.95)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              zIndex: 90,
-              display: "flex",
-              flexDirection: "column",
-              padding: "2rem",
-              overflow: "hidden",
-            }}
+            initial={{ opacity: 0, x: "-100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "-100%" }}
+            transition={{ type: "tween", duration: 0.3 }}
+            className="fixed inset-0 top-[64px] bg-white z-40 overflow-y-auto pb-20"
           >
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {navLinks.map((link, i) => (
-                  <motion.li
-                    key={link.href}
-                    initial={{ opacity: 0, y: 60, rotateX: -15 }}
-                    animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ 
-                      duration: 0.7, 
-                      delay: 0.1 + i * 0.1, 
-                      ease: [0.22, 1, 0.36, 1] 
-                    }}
-                    style={{ margin: "1.5rem 0", perspective: "1000px" }}
+            <div className="p-4 space-y-6">
+              {menuLinks.map((category) => (
+                <div key={category.label}>
+                  <Link
+                    href={category.href}
+                    className={`block text-xl font-bold mb-4 ${category.label === 'SALE' ? 'text-red-600' : 'text-black'}`}
                   >
-                    <Link
-                      href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      style={{
-                        fontSize: "clamp(3rem, 12vw, 6rem)",
-                        fontWeight: 800,
-                        color: pathname === link.href ? "#fff" : "rgba(255,255,255,0.4)",
-                        textDecoration: "none",
-                        textTransform: "uppercase",
-                        letterSpacing: "-0.04em",
-                        display: "block",
-                        lineHeight: 1,
-                        transition: "color 0.3s ease",
-                      }}
-                    >
-                      {link.label}
-                    </Link>
-                  </motion.li>
-                ))}
-              </ul>
+                    {category.label}
+                  </Link>
+                  {category.megaMenu && (
+                    <div className="grid grid-cols-2 gap-4 ml-4">
+                      {category.megaMenu.map((col) => (
+                        <div key={col.title}>
+                          <h4 className="font-semibold text-sm mb-2">{col.title}</h4>
+                          <ul className="space-y-2">
+                            {col.links.map((link) => (
+                              <li key={link.label}>
+                                <Link href={link.href} className="text-gray-600 text-sm">
+                                  {link.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <hr className="my-4 border-gray-200" />
+                </div>
+              ))}
+              <div className="space-y-4 pt-4 text-sm font-medium">
+                <Link href="/account" className="block text-gray-700">Join adiClub</Link>
+                <Link href="/store-finder" className="block text-gray-700">Store Finder</Link>
+                <Link href="/help" className="block text-gray-700">Help</Link>
+              </div>
             </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              style={{ 
-                paddingBottom: "2rem",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                borderTop: "1px solid rgba(255,255,255,0.1)",
-                paddingTop: "2rem"
-              }}
-            >
-              {user ? (
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setMobileMenuOpen(false);
-                  }}
-                  style={{
-                    fontSize: "1.1rem",
-                    color: "#fff",
-                    background: "none",
-                    border: "none",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                  }}
-                >
-                  Sign Out
-                </button>
-              ) : (
-                <Link
-                  href="/auth/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  style={{
-                    fontSize: "1.1rem",
-                    color: "#fff",
-                    textDecoration: "none",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    fontWeight: 600,
-                  }}
-                >
-                  Sign In
-                </Link>
-              )}
-              <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                Yarsha
-              </span>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </header>
   );
 }
-

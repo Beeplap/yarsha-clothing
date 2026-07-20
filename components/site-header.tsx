@@ -2,111 +2,161 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
-import { FullscreenMenu } from "@/components/fullscreen-menu";
-import { MenuIcon } from "@/components/menu-icon";
+const MEGA_MENU = [
+  {
+    name: "MEN",
+    href: "/products?category=men",
+    sections: [
+      {
+        title: "NEW & TRENDING",
+        links: [
+          { name: "New Arrivals", href: "/products?category=new" },
+          { name: "Best Sellers", href: "/products?category=best-sellers" },
+        ]
+      },
+      {
+        title: "SHOES",
+        links: [
+          { name: "Sneakers", href: "/products?category=sneakers" },
+          { name: "Running Shoes", href: "/products?category=running-shoes" },
+        ]
+      },
+      {
+        title: "CLOTHING",
+        links: [
+          { name: "Shirts", href: "/products?category=shirts" },
+          { name: "Pants", href: "/products?category=pants" },
+        ]
+      }
+    ]
+  },
+  {
+    name: "WOMEN",
+    href: "/products?category=women",
+    sections: [
+      {
+        title: "NEW & TRENDING",
+        links: [
+          { name: "New Arrivals", href: "/products?category=new" },
+          { name: "Best Sellers", href: "/products?category=best-sellers" },
+        ]
+      },
+      {
+        title: "SHOES",
+        links: [
+          { name: "Sneakers", href: "/products?category=sneakers" },
+          { name: "Heels", href: "/products?category=heels" },
+        ]
+      },
+      {
+        title: "CLOTHING",
+        links: [
+          { name: "Dresses", href: "/products?category=dresses" },
+          { name: "Tops", href: "/products?category=tops" },
+        ]
+      }
+    ]
+  },
+  {
+    name: "KIDS",
+    href: "/products?category=kids",
+    sections: []
+  },
+  {
+    name: "SALE",
+    href: "/products?category=sale",
+    sections: []
+  },
+  {
+    name: "SPORTS",
+    href: "/products?category=sports",
+    sections: []
+  },
+];
 
 export function SiteHeader() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const wasMenuOpen = useRef(false);
+  const pathname = usePathname();
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  useEffect(() => {
-    const siteFrame = document.querySelector<HTMLElement>(".site-frame");
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousFrameOverflowY = siteFrame?.style.overflowY ?? "";
+  // Hide entirely in admin panel
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
 
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-      if (siteFrame) {
-        siteFrame.style.overflowY = "hidden";
-      }
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsMenuOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousBodyOverflow;
-      if (siteFrame) {
-        siteFrame.style.overflowY = previousFrameOverflowY;
-      }
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isMenuOpen]);
-
-  useEffect(() => {
-    if (wasMenuOpen.current && !isMenuOpen) {
-      menuButtonRef.current?.focus({ preventScroll: true });
-    }
-
-    wasMenuOpen.current = isMenuOpen;
-  }, [isMenuOpen]);
-
-  const toggleMenu = () => {
-    setIsMenuOpen((current) => !current);
-  };
-
-  const handleLogoClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    setIsMenuOpen(false);
-
-    if (
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    ) {
-      return;
-    }
-
-    event.preventDefault();
-    window.dispatchEvent(new CustomEvent("yarsha:home-transition"));
-  };
+  const activeMenu = MEGA_MENU.find((m) => m.name === hoveredItem);
 
   return (
-    <>
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-[90]">
-        <div className="relative h-[calc(4.1666vw+clamp(3.125rem,4.1666vw,6.5rem))] min-h-[4.75rem] w-full">
-          <Link
-            href="/"
-            className="pointer-events-auto absolute left-[4.1666vw] top-[4.1666vw] block"
-            aria-label="Yarsha Byte home"
-            onClick={handleLogoClick}
-          >
-            <Image
-              src="/ico-bg.png"
-              
-              alt="Yarsha Byte logo"
-              width={104}
-              height={104}
-              className="size-[4rem] shrink-0 object-contain sm:size-[5.5rem] lg:size-[clamp(4.5rem,6.5vw,7.5rem)]"
-              priority
-              unoptimized
-            />
+    <header className="fixed inset-x-0 top-4 z-[90] pointer-events-auto px-4 md:px-8">
+      <div 
+        className="mx-auto max-w-7xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-sm transition-all duration-300"
+        style={{ borderRadius: "2rem" }}
+      >
+        <div className="flex h-16 items-center justify-between px-6">
+          {/* Logo */}
+          <Link href="/" className="flex-shrink-0" aria-label="Yarsha Byte home">
+            <h1 className="font-bold text-2xl tracking-tighter uppercase">Yarsha</h1>
           </Link>
 
-          <button
-            ref={menuButtonRef}
-            type="button"
-            aria-label={isMenuOpen ? "Close navigation" : "Open navigation"}
-            aria-controls="site-menu"
-            aria-expanded={isMenuOpen}
-            onClick={toggleMenu}
-            className="pointer-events-auto absolute right-[4.1666vw] top-[4.1666vw] grid h-[3.125rem] w-10 shrink-0 place-items-center text-foreground transition hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:h-[3.75rem] sm:w-14 lg:h-[clamp(3.75rem,4.1666vw,6.5rem)] lg:w-20"
+          {/* Nav Links */}
+          <nav 
+            className="hidden md:flex h-full"
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <MenuIcon open={isMenuOpen} />
-          </button>
-        </div>
-      </header>
+            {MEGA_MENU.map((item) => (
+              <div 
+                key={item.name} 
+                className="h-full flex items-center px-4 cursor-pointer"
+                onMouseEnter={() => setHoveredItem(item.name)}
+              >
+                <Link 
+                  href={item.href} 
+                  className="font-bold text-sm tracking-wide uppercase hover:text-accent transition-colors"
+                >
+                  {item.name}
+                </Link>
+              </div>
+            ))}
 
-      <FullscreenMenu open={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-    </>
+            {/* Mega Menu Dropdown */}
+            {hoveredItem && activeMenu && activeMenu.sections.length > 0 && (
+              <div 
+                className="absolute top-[100%] left-0 w-full bg-white border-t border-gray-100 shadow-xl overflow-hidden"
+                style={{ borderBottomLeftRadius: "1.5rem", borderBottomRightRadius: "1.5rem" }}
+              >
+                <div className="max-w-7xl mx-auto px-6 py-8 flex gap-12">
+                  {activeMenu.sections.map((section) => (
+                    <div key={section.title} className="flex flex-col gap-4">
+                      <h3 className="font-bold text-sm uppercase tracking-wider">{section.title}</h3>
+                      <ul className="flex flex-col gap-2">
+                        {section.links.map((link) => (
+                          <li key={link.name}>
+                            <Link 
+                              href={link.href}
+                              className="text-gray-600 hover:text-black hover:underline text-sm"
+                            >
+                              {link.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </nav>
+
+          {/* Right side icons */}
+          <div className="flex items-center gap-4">
+            <Link href="/cart" className="text-sm font-bold uppercase hover:text-accent transition-colors">
+              Cart
+            </Link>
+          </div>
+        </div>
+      </div>
+    </header>
   );
 }

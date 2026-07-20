@@ -82,7 +82,7 @@ export default async function AdminDashboardPage() {
 
       <div className="admin-dashboard-actions">
         <h2>Quick Actions</h2>
-        <div className="admin-actions-grid">
+        <div className="admin-actions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
           <Link href="/admin/products/new" className="admin-action-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" x2="12" y1="5" y2="19" />
@@ -96,6 +96,12 @@ export default async function AdminDashboardPage() {
               <polyline points="12 6 12 12 16 14" />
             </svg>
             View Recent Orders
+          </Link>
+          <Link href="/admin/categories" className="admin-action-btn admin-action-btn--secondary" style={{ backgroundColor: '#f3f4f6', color: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', borderRadius: '0.5rem', textDecoration: 'none', fontWeight: 500 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+            Manage Categories
           </Link>
         </div>
       </div>
