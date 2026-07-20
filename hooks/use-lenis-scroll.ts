@@ -21,17 +21,9 @@ export function useLenisScroll() {
       return;
     }
 
-    const wrapper = document.querySelector<HTMLElement>(".site-frame");
-    const content = document.querySelector<HTMLElement>(".site-frame-content");
-
-    if (!wrapper || !content) {
-      return;
-    }
-
     const lenis = new Lenis({
-      wrapper,
-      content,
-      lerp: 0.16,
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       wheelMultiplier: 1,
     });
@@ -55,27 +47,6 @@ export function useLenisScroll() {
 
     lenis.on("scroll", onLenisScroll);
 
-    ScrollTrigger.scrollerProxy(wrapper, {
-      scrollTop(value) {
-        if (arguments.length && value !== undefined) {
-          lenis.scrollTo(value, { immediate: true });
-        }
-
-        return lenis.scroll;
-      },
-      getBoundingClientRect() {
-        return {
-          top: 0,
-          left: 0,
-          width: wrapper.clientWidth,
-          height: wrapper.clientHeight,
-        };
-      },
-      pinType: "transform",
-    });
-
-    ScrollTrigger.defaults({ scroller: wrapper });
-
     const onTick = (time: number) => {
       lenis.raf(time * 1000);
     };
@@ -84,7 +55,10 @@ export function useLenisScroll() {
     gsap.ticker.lagSmoothing(0);
 
     ScrollTrigger.refresh();
-    wrapper.dataset.lenisReady = "true";
+    const frame = document.querySelector<HTMLElement>(".site-frame");
+    if (frame) {
+      frame.dataset.lenisReady = "true";
+    }
     window.dispatchEvent(
       new CustomEvent("lenis:ready", {
         detail: { scroll: lenis.scroll },
@@ -92,12 +66,12 @@ export function useLenisScroll() {
     );
 
     return () => {
-      delete wrapper.dataset.lenisReady;
+      if (frame) {
+        delete frame.dataset.lenisReady;
+      }
       gsap.ticker.remove(onTick);
       lenis.off("scroll", onLenisScroll);
       lenis.destroy();
-      ScrollTrigger.scrollerProxy(wrapper, {});
-      ScrollTrigger.defaults({ scroller: undefined });
       ScrollTrigger.refresh();
     };
   }, [reduceMotion]);

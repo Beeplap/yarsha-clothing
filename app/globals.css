@@ -231,6 +231,7 @@ body::-webkit-scrollbar {
   body {
     padding: 0;
     overflow-x: hidden;
+    overflow-y: auto;
   }
 
   :root {
@@ -239,15 +240,10 @@ body::-webkit-scrollbar {
   }
 
   .site-frame {
-    height: 100%;
     min-height: 100vh;
     background: var(--background);
-    overflow-x: hidden;
-    overflow-y: auto;
     border-radius: 0;
     box-shadow: none;
-    scrollbar-width: none;
-    overscroll-behavior: contain;
   }
 
   .site-frame.awards-is-pinned {
