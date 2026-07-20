@@ -319,7 +319,7 @@ export function FullscreenMenu({ open, onClose }: FullscreenMenuProps) {
       aria-label="Site navigation"
       inert={!open}
       tabIndex={-1}
-      className="invisible pointer-events-none fixed inset-0 z-[80] overflow-hidden bg-menu-bg outline-none lg:bottom-[10px] lg:left-[10px] lg:right-[10px] lg:top-0"
+      className="invisible pointer-events-none fixed inset-0 z-[80] overflow-hidden bg-menu-bg outline-none"
     >
       <MenuBottomWave />
 

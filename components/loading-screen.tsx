@@ -12,7 +12,7 @@ export function LoadingScreen({ isExiting }: LoadingScreenProps) {
       className={cn(
         "fixed inset-0 z-[1000] flex flex-col items-center justify-center overflow-hidden bg-background transition-[inset,border-radius,opacity,visibility] duration-700 ease-in-out",
         isExiting
-          ? "pointer-events-none invisible inset-[10px] rounded-[30px] opacity-0"
+          ? "pointer-events-none invisible inset-0 rounded-none opacity-0"
           : "visible opacity-100",
       )}
       aria-hidden={isExiting}

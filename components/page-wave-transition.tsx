@@ -234,7 +234,7 @@ export function PageWaveTransition() {
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none fixed inset-0 z-[950] invisible overflow-hidden opacity-0 lg:inset-3 lg:rounded-[1.45rem] bg-background"
+      className="pointer-events-none fixed inset-0 z-[950] invisible overflow-hidden opacity-0 bg-background"
       aria-hidden="true"
     >
       <svg
