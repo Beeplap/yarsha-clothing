@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Product } from "@/types/database";
 import { useCart } from "@/context/cart-context";
 
@@ -21,6 +21,28 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     product.images && product.images.length > 0
       ? product.images
       : ["/placeholder-product.jpg"];
+
+  // Store in recently viewed
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("yarsha_recently_viewed");
+      let list: Product[] = stored ? JSON.parse(stored) : [];
+      if (!Array.isArray(list)) list = [];
+
+      // Filter out current product if already exists
+      list = list.filter((p) => p.id !== product.id);
+
+      // Add to front of list
+      list.unshift(product);
+
+      // Limit to 8 items
+      if (list.length > 8) list = list.slice(0, 8);
+
+      localStorage.setItem("yarsha_recently_viewed", JSON.stringify(list));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [product]);
       
   // For sticky scroll gallery, ensure we have enough images to scroll
   const displayImages = baseImages.length >= 3 

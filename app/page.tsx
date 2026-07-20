@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { ContactSection } from "@/components/sections/contact-section";
 import { HeroSection } from "@/components/sections/hero-section";
-import { WearsSection } from "@/components/sections/wears-section";
 import { TopProductsSection } from "@/components/sections/top-products-section";
+import { RecentlyViewedSection } from "@/components/sections/recently-viewed-section";
 import { createClient } from "@/utils/supabase/server";
 
 export const metadata: Metadata = {
@@ -17,11 +17,7 @@ export default async function Home() {
   const { data: products } = await supabase
     .from("products")
     .select("*, categories(name)")
-    .limit(7);
-
-  const wearsImages = products?.flatMap(p => 
-    (p.images || []).filter(Boolean).map((img: string) => ({ src: img, alt: p.name }))
-  ) || [];
+    .limit(8);
 
   const breadcrumb = {
     "@context": "https://schema.org",
@@ -36,8 +32,8 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <main>
         <HeroSection />
-        <WearsSection products={wearsImages} />
         <TopProductsSection products={products || []} />
+        <RecentlyViewedSection />
         <ContactSection />
       </main>
     </>
