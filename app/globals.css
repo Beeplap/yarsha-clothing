@@ -4,6 +4,7 @@
 @source "../data/**/*.{ts,tsx}";
 @source "../hooks/**/*.{ts,tsx}";
 @import "./admin.css";
+@import "./ecommerce.css";
 @font-face {
   font-family: "Suisse Intl";
   src:

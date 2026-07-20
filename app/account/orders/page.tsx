@@ -16,9 +16,9 @@ export default async function OrdersPage() {
     return (
       <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '5rem 2rem', borderRadius: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div style={{ position: 'relative', width: '200px', height: '200px', marginBottom: '2rem', animation: 'float 6s ease-in-out infinite' }}>
-          <div style={{ position: 'absolute', inset: 0, border: '1px dashed rgba(0, 212, 255, 0.3)', borderRadius: '50%', animation: 'spin 20s linear infinite' }} />
-          <div style={{ position: 'absolute', inset: '20px', border: '1px solid rgba(14, 165, 233, 0.2)', borderRadius: '50%', animation: 'spin 15s linear infinite reverse' }} />
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(0, 212, 255, 0.5)' }}>
+          <div style={{ position: 'absolute', inset: 0, border: '1px dashed rgba(184, 106, 44, 0.3)', borderRadius: '50%', animation: 'spin 20s linear infinite' }} />
+          <div style={{ position: 'absolute', inset: '20px', border: '1px solid rgba(184, 106, 44, 0.2)', borderRadius: '50%', animation: 'spin 15s linear infinite reverse' }} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(184, 106, 44, 0.5)' }}>
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
               <path d="m7.5 4.27 9 5.15" />
               <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
@@ -29,7 +29,7 @@ export default async function OrdersPage() {
         </div>
         <h2 style={{ fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem', color: '#fff' }}>No Orders Found</h2>
         <p style={{ color: '#a3a3a3', fontSize: '1.1rem', maxWidth: '400px', marginBottom: '2rem' }}>You haven't initiated any protocols yet. Explore the collection to begin your journey.</p>
-        <a href="/products" className="magnetic-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#fff', color: '#000', padding: '1rem 2.5rem', borderRadius: '3rem', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.9rem', transition: 'transform 0.2s' }}>
+        <a href="/products" className="magnetic-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--background)', color: 'var(--foreground)', padding: '1rem 2.5rem', borderRadius: '3rem', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.9rem', transition: 'transform 0.2s' }}>
           Initialize Order
         </a>
       </div>
@@ -49,7 +49,7 @@ export default async function OrdersPage() {
             <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <p style={{ fontSize: '0.85rem', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '1px' }}>Order ID</p>
-                <p style={{ fontWeight: 600, fontFamily: 'monospace', color: '#00d4ff' }}>#{order.id.split('-')[0].toUpperCase()}</p>
+                <p style={{ fontWeight: 600, fontFamily: 'monospace', color: 'var(--accent)' }}>#{order.id.split('-')[0].toUpperCase()}</p>
               </div>
               <div>
                 <p style={{ fontSize: '0.85rem', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '1px' }}>Date Placed</p>
@@ -83,7 +83,7 @@ export default async function OrdersPage() {
                     top: '50%', 
                     left: 0, 
                     height: '4px', 
-                    background: '#0ea5e9', 
+                    background: 'var(--accent)', 
                     transform: 'translateY(-50%)', 
                     zIndex: 1,
                     width: `${(Math.max(0, statusIndex) / (STATUS_STEPS.length - 1)) * 100}%`,
@@ -96,9 +96,9 @@ export default async function OrdersPage() {
                         width: '24px', 
                         height: '24px', 
                         borderRadius: '50%', 
-                        background: idx <= statusIndex ? '#0ea5e9' : '#333',
-                        border: `4px solid ${idx <= statusIndex ? '#0ea5e9' : '#111'}`,
-                        boxShadow: idx <= statusIndex ? '0 0 10px rgba(14, 165, 233, 0.5)' : 'none'
+                        background: idx <= statusIndex ? 'var(--accent)' : 'var(--menu-bg)',
+                        border: `4px solid ${idx <= statusIndex ? 'var(--accent)' : 'var(--navy)'}`,
+                        boxShadow: idx <= statusIndex ? '0 0 10px rgba(184, 106, 44, 0.5)' : 'none'
                       }} />
                       <span style={{ fontSize: '0.75rem', textTransform: 'capitalize', color: idx <= statusIndex ? '#e5e5e5' : '#737373', fontWeight: idx <= statusIndex ? 600 : 400 }}>
                         {step}
@@ -108,9 +108,9 @@ export default async function OrdersPage() {
                 </div>
                 
                 {order.shipping_address?.tracking_number && (
-                  <div style={{ textAlign: 'center', marginTop: '1.5rem', padding: '1rem', background: 'rgba(14, 165, 233, 0.1)', borderRadius: '0.5rem', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
+                  <div style={{ textAlign: 'center', marginTop: '1.5rem', padding: '1rem', background: 'rgba(184, 106, 44, 0.1)', borderRadius: '0.5rem', border: '1px solid rgba(184, 106, 44, 0.2)' }}>
                     <p style={{ fontSize: '0.85rem', color: '#a3a3a3' }}>Tracking Number</p>
-                    <p style={{ fontWeight: 600, color: '#0ea5e9', letterSpacing: '1px' }}>{order.shipping_address.tracking_number}</p>
+                    <p style={{ fontWeight: 600, color: 'var(--accent)', letterSpacing: '1px' }}>{order.shipping_address.tracking_number}</p>
                   </div>
                 )}
               </div>
