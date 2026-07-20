@@ -30,7 +30,7 @@
 .admin-sidebar {
   width: 280px;
   background-color: white;
-  border-right: 1px solid var(--color-neutral-200);
+  border: none;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -44,7 +44,7 @@
   display: flex;
   align-items: center;
   padding: 0 1.5rem;
-  border-bottom: 1px solid var(--color-neutral-200);
+  border: none;
 }
 
 .admin-sidebar__logo {
@@ -79,7 +79,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0;
   color: var(--color-neutral-600);
   text-decoration: none;
   font-size: 0.9375rem;
@@ -117,7 +117,7 @@
 
 .admin-sidebar__footer {
   padding: 1.5rem 1rem;
-  border-top: 1px solid var(--color-neutral-200);
+  border: none;
 }
 
 .admin-main {
@@ -149,13 +149,13 @@
 
 .admin-stat-card {
   background: white;
-  border: 1px solid var(--color-neutral-200);
-  border-radius: 0.75rem;
+  border: none;
+  border-radius: 0;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: none;
 }
 
 .admin-stat-card__icon {
@@ -201,27 +201,27 @@
   gap: 0.5rem;
   padding: 1rem 1.5rem;
   background: white;
-  border: 1px solid var(--color-neutral-200);
-  border-radius: 0.5rem;
+  border: none;
+  border-radius: 0;
   text-decoration: none;
   color: var(--color-neutral-900);
   font-weight: 500;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: none;
 }
 
 .admin-action-btn:hover {
-  border-color: var(--color-neutral-300);
+  background: var(--color-neutral-100);
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  box-shadow: none;
 }
 
 .admin-table-container {
   background: white;
-  border: 1px solid var(--color-neutral-200);
-  border-radius: 0.75rem;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: none;
 }
 
 .admin-table {
@@ -237,12 +237,12 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-neutral-500);
-  border-bottom: 1px solid var(--color-neutral-200);
+  border-bottom: 1px solid var(--color-neutral-100);
 }
 
 .admin-table td {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-neutral-200);
+  border-bottom: 1px solid var(--color-neutral-100);
   font-size: 0.875rem;
   color: var(--color-neutral-900);
   vertical-align: middle;
@@ -391,10 +391,10 @@
 
 .admin-form-card {
   background: white;
-  border: 1px solid var(--color-neutral-200);
-  border-radius: 0.75rem;
+  border: none;
+  border-radius: 0;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: none;
 }
 
 .admin-form-card__title {
