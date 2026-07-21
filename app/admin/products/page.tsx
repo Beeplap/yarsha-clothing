@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
+import AdminSeedButton from "@/components/admin/seed-button";
 
 export default async function AdminProductsPage() {
   const cookieStore = await cookies();
@@ -25,10 +26,13 @@ export default async function AdminProductsPage() {
   return (
     <div className="admin-page">
       <div className="admin-page__header">
-        <h1 className="admin-page__title">Products</h1>
-        <Link href="/admin/products/new" className="auth-button" style={{ width: "auto", margin: 0, display: "inline-flex" }}>
-          Add Product
-        </Link>
+        <h1 className="admin-page__title">Products ({products?.length || 0})</h1>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <AdminSeedButton />
+          <Link href="/admin/products/new" className="auth-button" style={{ width: "auto", margin: 0, display: "inline-flex" }}>
+            Add Product
+          </Link>
+        </div>
       </div>
 
       <div className="admin-table-container">

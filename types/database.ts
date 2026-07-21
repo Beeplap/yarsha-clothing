@@ -14,6 +14,26 @@ export interface Profile {
   full_name: string;
   role: UserRole;
   created_at: string;
+  points?: number;
+  is_yarshaclub_member?: boolean;
+  last_login_date?: string;
+  login_streak?: number;
+}
+
+export interface PointsLog {
+  id: string;
+  user_id: string;
+  points: number;
+  reason: string;
+  created_at: string;
+}
+
+export interface RecentlyViewed {
+  id: string;
+  user_id: string;
+  product_id: string;
+  viewed_at: string;
+  products?: Product;
 }
 
 export interface Category {

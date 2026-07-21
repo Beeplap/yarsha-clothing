@@ -5,6 +5,7 @@ import type { Product } from "@/types/database";
 import { useCart } from "@/context/cart-context";
 import Link from "next/link";
 import { Heart, ChevronLeft, ChevronRight, Check, Star } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 interface ProductDetailProps {
   product: Product;
@@ -30,7 +31,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ["XS", "S", "M", "L", "XL"];
   const colors = product.colors && product.colors.length > 0 ? product.colors : ["Core Black", "Cloud White", "Yarsha Tan"];
 
-  // Store in recently viewed
+  // Store in recently viewed (localStorage + Supabase DB)
   useEffect(() => {
     try {
       const stored = localStorage.getItem("yarsha_recently_viewed");
@@ -45,6 +46,26 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     } catch {
       // Ignore
     }
+
+    // Sync with Supabase for logged-in users
+    const supabase = createClient();
+    const syncView = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && product.id) {
+          const { error } = await supabase.rpc("record_recently_viewed", { p_product_id: product.id });
+          if (error) {
+            await supabase.from("recently_viewed").upsert(
+              { user_id: user.id, product_id: product.id, viewed_at: new Date().toISOString() },
+              { onConflict: "user_id,product_id" }
+            );
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+    syncView();
   }, [product]);
 
   const hasDiscount =
