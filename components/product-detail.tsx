@@ -3,24 +3,32 @@
 import { useState, useEffect } from "react";
 import type { Product } from "@/types/database";
 import { useCart } from "@/context/cart-context";
-
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+import Link from "next/link";
+import { Heart, ChevronLeft, ChevronRight, Check, Star } from "lucide-react";
 
 interface ProductDetailProps {
   product: Product;
 }
 
 export default function ProductDetail({ product }: ProductDetailProps) {
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
+  const [showPersonalization, setShowPersonalization] = useState(false);
+  const [personalizationText, setPersonalizationText] = useState("");
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const [adding, setAdding] = useState(false);
   const [addedMessage, setAddedMessage] = useState("");
   const { addToCart } = useCart();
 
-  const baseImages =
+  const images =
     product.images && product.images.length > 0
       ? product.images
       : ["/placeholder-product.jpg"];
+
+  const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ["XS", "S", "M", "L", "XL"];
+  const colors = product.colors && product.colors.length > 0 ? product.colors : ["Core Black", "Cloud White", "Yarsha Tan"];
 
   // Store in recently viewed
   useEffect(() => {
@@ -29,47 +37,33 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       let list: Product[] = stored ? JSON.parse(stored) : [];
       if (!Array.isArray(list)) list = [];
 
-      // Filter out current product if already exists
       list = list.filter((p) => p.id !== product.id);
-
-      // Add to front of list
       list.unshift(product);
-
-      // Limit to 8 items
       if (list.length > 8) list = list.slice(0, 8);
 
       localStorage.setItem("yarsha_recently_viewed", JSON.stringify(list));
     } catch {
-      // Ignore storage errors
+      // Ignore
     }
   }, [product]);
-      
-  // For sticky scroll gallery, ensure we have enough images to scroll
-  const displayImages = baseImages.length >= 3 
-    ? baseImages 
-    : [...baseImages, ...baseImages, ...baseImages].slice(0, 3);
 
   const hasDiscount =
     product.compare_at_price && product.compare_at_price > product.price;
-  const discountPercent = hasDiscount
-    ? Math.round(
-        ((product.compare_at_price! - product.price) /
-          product.compare_at_price!) *
-          100
-      )
-    : 0;
 
   const inStock = product.stock_quantity > 0;
 
   const handleAddToCart = async () => {
-    if (!selectedSize) return;
+    if (!selectedSize && sizes.length > 0) {
+      setSelectedSize(sizes[0]);
+    }
     setAdding(true);
     setAddedMessage("");
 
     try {
-      await addToCart(product, quantity, selectedSize);
-      setAddedMessage("Added to cart!");
-      setTimeout(() => setAddedMessage(""), 3000);
+      const finalSize = selectedSize || sizes[0] || "Standard";
+      await addToCart(product, quantity, finalSize);
+      setAddedMessage("Added to basket!");
+      setTimeout(() => setAddedMessage(""), 3500);
     } catch {
       setAddedMessage("Something went wrong.");
     } finally {
@@ -77,144 +71,405 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     }
   };
 
+  const nextImage = () => {
+    setActiveImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
   return (
-    <div className="pdp">
-      {/* Image Gallery (Scrolling) */}
-      <div className="pdp__gallery">
-        {displayImages.map((img, index) => (
-          <div key={index} className="pdp__main-image-wrapper">
-            <img
-              src={img}
-              alt={`${product.name} - View ${index + 1}`}
-              className="pdp__main-image"
-            />
-            {index === 0 && hasDiscount && (
-              <span className="pdp__badge">-{discountPercent}% OFF</span>
-            )}
-          </div>
-        ))}
+    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "1.5rem 5vw 4rem 5vw", fontFamily: "var(--body-font)", color: "var(--foreground)" }}>
+      {/* Back link */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <Link
+          href="/products"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "0.875rem",
+            color: "var(--foreground)",
+            textDecoration: "none",
+            fontWeight: 500,
+          }}
+        >
+          ← Back to search results
+        </Link>
       </div>
 
-      {/* Product Info */}
-      <div className="pdp__info">
-        {product.categories && (
-          <span className="pdp__category">{product.categories.name}</span>
-        )}
-
-        <h1 className="pdp__title">{product.name}</h1>
-
-        <div className="pdp__price-row">
-          <span className="pdp__price">
-            Rs. {Number(product.price).toLocaleString()}
-          </span>
-          {hasDiscount && (
-            <span className="pdp__compare-price">
-              Rs. {Number(product.compare_at_price!).toLocaleString()}
-            </span>
-          )}
-        </div>
-
-        {/* Stock Status */}
-        <div className={`pdp__stock ${inStock ? "pdp__stock--in" : "pdp__stock--out"}`}>
-          <span className="pdp__stock-dot" />
-          {inStock
-            ? product.stock_quantity <= 5
-              ? `Only ${product.stock_quantity} left in stock`
-              : "In Stock"
-            : "Out of Stock"}
-        </div>
-
-        {/* Description */}
-        {product.description && (
-          <p className="pdp__description">{product.description}</p>
-        )}
-
-        {/* Size Selector */}
-        <div className="pdp__section">
-          <h3 className="pdp__section-title">
-            Size {selectedSize && <span className="pdp__size-selected">— {selectedSize}</span>}
-          </h3>
-          <div className="pdp__sizes">
-            {SIZES.map((size) => (
+      {/* Main 2-Column Product Purchase Layout */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: "3rem",
+          alignItems: "start",
+        }}
+      >
+        {/* LEFT COLUMN: Gallery with vertical thumbnail strip */}
+        <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+          {/* Vertical Thumbnail Strip */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "64px", flexShrink: 0 }}>
+            {images.map((img, idx) => (
               <button
-                key={size}
-                className={`pdp__size-btn ${selectedSize === size ? "pdp__size-btn--active" : ""}`}
-                onClick={() => setSelectedSize(size)}
+                key={idx}
+                onClick={() => setActiveImageIndex(idx)}
+                style={{
+                  width: "64px",
+                  height: "64px",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  border: activeImageIndex === idx ? "2px solid var(--foreground)" : "1px solid color-mix(in srgb, var(--foreground) 15%, transparent)",
+                  padding: 0,
+                  cursor: "pointer",
+                  background: "transparent",
+                }}
               >
-                {size}
+                <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Quantity */}
-        <div className="pdp__section">
-          <h3 className="pdp__section-title">Quantity</h3>
-          <div className="pdp__quantity">
-            <button
-              className="pdp__qty-btn"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              aria-label="Decrease quantity"
+          {/* Main Display Image */}
+          <div
+            style={{
+              position: "relative",
+              flex: 1,
+              aspectRatio: "1 / 1",
+              borderRadius: "16px",
+              overflow: "hidden",
+              backgroundColor: "color-mix(in srgb, var(--foreground) 4%, transparent)",
+            }}
+          >
+            <img
+              src={images[activeImageIndex]}
+              alt={product.name}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+
+            {/* Top Left Badge: Yarsha's Pick */}
+            <div
+              style={{
+                position: "absolute",
+                top: "16px",
+                left: "16px",
+                background: "#fef08a",
+                color: "#854d0e",
+                border: "1.5px dashed #ca8a04",
+                borderRadius: "20px",
+                padding: "6px 14px",
+                fontSize: "0.8rem",
+                fontWeight: 800,
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
             >
-              −
-            </button>
-            <span className="pdp__qty-value">{quantity}</span>
+              <span>✨ Yarsha&apos;s Pick</span>
+            </div>
+
+            {/* Top Right Wishlist Heart */}
             <button
-              className="pdp__qty-btn"
-              onClick={() =>
-                setQuantity(Math.min(product.stock_quantity, quantity + 1))
-              }
-              aria-label="Increase quantity"
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                width: "44px",
+                height: "44px",
+                borderRadius: "50%",
+                background: "#ffffff",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                transition: "transform 0.2s ease",
+              }}
+              aria-label="Add to wishlist"
             >
-              +
+              <Heart size={20} fill={isWishlisted ? "#e63946" : "none"} stroke={isWishlisted ? "#e63946" : "#111"} />
             </button>
+
+            {/* Navigation Arrows */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  style={{
+                    position: "absolute",
+                    left: "16px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    background: "#ffffff",
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  <ChevronLeft size={20} color="#111" />
+                </button>
+
+                <button
+                  onClick={nextImage}
+                  style={{
+                    position: "absolute",
+                    right: "16px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    background: "#ffffff",
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  <ChevronRight size={20} color="#111" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Add to Cart */}
-        <button
-          className="pdp__add-btn"
-          onClick={handleAddToCart}
-          disabled={!inStock || !selectedSize || adding}
-          id="add-to-cart"
-        >
-          {adding ? (
-            <span className="auth-spinner" />
-          ) : !inStock ? (
-            "Out of Stock"
-          ) : !selectedSize ? (
-            "Select a Size"
-          ) : (
-            "Add to Cart"
+        {/* RIGHT COLUMN: Product Info & Purchase Form */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {/* Red/Accent Urgency Line */}
+          <div style={{ color: "#c53030", fontWeight: 700, fontSize: "0.9rem" }}>
+            In demand. 66 people bought this in the last 24 hours.
+          </div>
+
+          {/* Large Price */}
+          <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+            <span style={{ fontSize: "2rem", fontWeight: 800, color: "var(--foreground)" }}>
+              Rs. {Number(product.price).toLocaleString()}
+            </span>
+            {hasDiscount && (
+              <span style={{ fontSize: "1.1rem", textDecoration: "line-through", color: "color-mix(in srgb, var(--foreground) 45%, transparent)" }}>
+                Rs. {Number(product.compare_at_price!).toLocaleString()}
+              </span>
+            )}
+          </div>
+
+          {/* Title */}
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.2, margin: 0 }}>
+            {product.name}
+          </h1>
+
+          {/* Shop Name & Rating */}
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.9rem" }}>
+            <span style={{ fontWeight: 700 }}>Yarsha Wears</span>
+            <div style={{ display: "flex", color: "#eab308" }}>
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} size={16} fill="currentColor" />
+              ))}
+            </div>
+            <span style={{ color: "color-mix(in srgb, var(--foreground) 60%, transparent)", fontSize: "0.85rem" }}>(1,280 reviews)</span>
+          </div>
+
+          {/* Delivery estimate */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.9rem", color: "var(--foreground)", fontWeight: 500 }}>
+            <Check size={18} color="var(--accent)" />
+            <span>Arrives soon! Get it within 2-4 days in Nepal</span>
+          </div>
+
+          {/* Colorway Dropdown */}
+          {colors.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <label style={{ fontSize: "0.875rem", fontWeight: 600 }}>Color Option</label>
+              <select
+                value={selectedColor}
+                onChange={(e) => setSelectedColor(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.875rem 1rem",
+                  borderRadius: "8px",
+                  border: "1px solid color-mix(in srgb, var(--foreground) 25%, transparent)",
+                  backgroundColor: "var(--background)",
+                  color: "var(--foreground)",
+                  fontSize: "0.95rem",
+                  outline: "none",
+                }}
+              >
+                <option value="">Select an option</option>
+                {colors.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
           )}
-        </button>
 
-        {addedMessage && (
-          <p className="pdp__added-msg">{addedMessage}</p>
-        )}
+          {/* Size Dropdown */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <label style={{ fontSize: "0.875rem", fontWeight: 600 }}>Size</label>
+            <select
+              value={selectedSize}
+              onChange={(e) => setSelectedSize(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "0.875rem 1rem",
+                borderRadius: "8px",
+                border: "1px solid color-mix(in srgb, var(--foreground) 25%, transparent)",
+                backgroundColor: "var(--background)",
+                color: "var(--foreground)",
+                fontSize: "0.95rem",
+                outline: "none",
+              }}
+            >
+              <option value="">Select Size</option>
+              {sizes.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
 
-        {/* Details */}
-        <div className="pdp__details">
-          <div className="pdp__detail-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            <span>Free shipping across Nepal</span>
+          {/* Add Personalisation Toggle */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowPersonalization(!showPersonalization)}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                fontSize: "0.9rem",
+                fontWeight: 600,
+                color: "var(--foreground)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <span>{showPersonalization ? "− Remove custom note" : "+ Add custom note / gift message"}</span>
+            </button>
+
+            {showPersonalization && (
+              <textarea
+                value={personalizationText}
+                onChange={(e) => setPersonalizationText(e.target.value)}
+                placeholder="Enter custom text or packaging instructions..."
+                rows={3}
+                style={{
+                  width: "100%",
+                  marginTop: "0.75rem",
+                  padding: "0.75rem",
+                  borderRadius: "8px",
+                  border: "1px solid color-mix(in srgb, var(--foreground) 20%, transparent)",
+                  backgroundColor: "var(--background)",
+                  fontSize: "0.9rem",
+                }}
+              />
+            )}
           </div>
-          <div className="pdp__detail-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
-              <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9" />
-              <path d="M12 3v6" />
-            </svg>
-            <span>Easy 7-day returns</span>
+
+          {/* Quantity Box */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <label style={{ fontSize: "0.875rem", fontWeight: 600 }}>Quantity</label>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                width: "120px",
+                borderRadius: "8px",
+                border: "1px solid color-mix(in srgb, var(--foreground) 25%, transparent)",
+                overflow: "hidden",
+              }}
+            >
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                style={{ flex: 1, padding: "0.6rem", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }}
+              >
+                −
+              </button>
+              <span style={{ flex: 1, textAlign: "center", fontWeight: 700 }}>{quantity}</span>
+              <button
+                onClick={() => setQuantity(quantity + 1)}
+                style={{ flex: 1, padding: "0.6rem", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }}
+              >
+                +
+              </button>
+            </div>
           </div>
-          <div className="pdp__detail-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-            </svg>
-            <span>100% authentic guarantee</span>
+
+          {/* Payment Info Subtext */}
+          <div style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--foreground) 65%, transparent)" }}>
+            Instant digital payment available with <strong>eSewa, Khalti, or Cards</strong>.
+          </div>
+
+          {/* Add to Basket CTA Pill Button */}
+          <button
+            onClick={handleAddToCart}
+            disabled={!inStock || adding}
+            style={{
+              width: "100%",
+              padding: "1rem",
+              borderRadius: "30px",
+              backgroundColor: "var(--foreground)",
+              color: "var(--background)",
+              border: "none",
+              fontSize: "1rem",
+              fontWeight: 800,
+              cursor: inStock ? "pointer" : "not-allowed",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+              transition: "transform 0.15s ease",
+            }}
+          >
+            {adding ? "Adding to basket..." : !inStock ? "Out of Stock" : "Add to basket"}
+          </button>
+
+          {addedMessage && (
+            <div style={{ textAlign: "center", fontWeight: 700, color: "var(--accent)" }}>
+              {addedMessage}
+            </div>
+          )}
+
+          {/* Star Seller Guarantee Footer */}
+          <div
+            style={{
+              marginTop: "1.5rem",
+              padding: "1.25rem",
+              borderRadius: "12px",
+              backgroundColor: "color-mix(in srgb, var(--foreground) 4%, transparent)",
+              display: "flex",
+              gap: "1rem",
+              alignItems: "flex-start",
+            }}
+          >
+            <div
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                backgroundColor: "var(--accent)",
+                color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 900,
+                fontSize: "1.1rem",
+                flexShrink: 0,
+              }}
+            >
+              ★
+            </div>
+            <div style={{ fontSize: "0.85rem", lineHeight: 1.4 }}>
+              <strong>Star Seller.</strong> Yarsha Wears consistently earned 5-star reviews, dispatched orders on time, and replied quickly to any customer inquiries across Nepal.
+            </div>
           </div>
         </div>
       </div>
