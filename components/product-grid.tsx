@@ -112,7 +112,8 @@ export default function ProductGrid({
               className={`filters__option ${selectedCategory === "" ? "filters__option--active" : ""}`}
               onClick={() => setSelectedCategory("")}
             >
-              All Categories
+              <span>All Categories</span>
+              {selectedCategory === "" && <span className="filters__check">✓</span>}
             </button>
           </li>
           {categories.map((cat) => (
@@ -121,7 +122,8 @@ export default function ProductGrid({
                 className={`filters__option ${selectedCategory === cat.slug ? "filters__option--active" : ""}`}
                 onClick={() => setSelectedCategory(cat.slug)}
               >
-                {cat.name}
+                <span>{cat.name}</span>
+                {selectedCategory === cat.slug && <span className="filters__check">✓</span>}
               </button>
             </li>
           ))}
@@ -137,7 +139,8 @@ export default function ProductGrid({
               className={`filters__option ${selectedPriceRange === null ? "filters__option--active" : ""}`}
               onClick={() => setSelectedPriceRange(null)}
             >
-              All Prices
+              <span>All Prices</span>
+              {selectedPriceRange === null && <span className="filters__check">✓</span>}
             </button>
           </li>
           {PRICE_RANGES.map((range, i) => (
@@ -146,7 +149,8 @@ export default function ProductGrid({
                 className={`filters__option ${selectedPriceRange === i ? "filters__option--active" : ""}`}
                 onClick={() => setSelectedPriceRange(i)}
               >
-                {range.label}
+                <span>{range.label}</span>
+                {selectedPriceRange === i && <span className="filters__check">✓</span>}
               </button>
             </li>
           ))}
