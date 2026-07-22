@@ -7,6 +7,7 @@ import { useCart } from "@/context/cart-context";
 import { ShoppingBag, Trash2, ArrowRight, Eye, Sparkles } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import PaginationBar from "@/components/pagination-bar";
 
 export default function WishlistPage() {
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
@@ -345,6 +346,13 @@ export default function WishlistPage() {
               </div>
             </div>
           )}
+
+          {/* Bottom Pagination Bar Footer */}
+          <PaginationBar
+            currentPage={1}
+            totalPages={1}
+            viewAllHref="/products"
+          />
 
         </div>
       )}

@@ -1,35 +1,32 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
 import ProductCard from "@/components/product-card";
+import PaginationBar from "@/components/pagination-bar";
 
 export function TopProductsSection({ products }: { products: any[] }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
+  const totalPages = Math.max(1, Math.ceil((products?.length || 0) / itemsPerPage));
+
+  const pagedProducts = (products || []).slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <section className="top-products-section" style={{ padding: '6rem 5vw', backgroundColor: '#f9f9f9' }}>
-      <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
-        <div>
-          <h2 style={{ fontSize: '3rem', fontWeight: 900, textTransform: 'uppercase', lineHeight: 1 }}>
-            Top Products
-          </h2>
-          <p style={{ marginTop: '0.5rem', color: '#666', fontSize: '1.1rem' }}>
-            Discover our most popular wears
-          </p>
-        </div>
-        <Link 
-          href="/products" 
-          className="magnetic-btn" 
-          style={{ 
-            display: 'inline-block', 
-            border: '2px solid #000', 
-            padding: '0.8rem 2rem', 
-            borderRadius: '3rem', 
-            fontWeight: 700, 
-            textTransform: 'uppercase',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          View All
-        </Link>
+      {/* Header without View All at the top */}
+      <div className="section-header" style={{ marginBottom: '3rem' }}>
+        <h2 style={{ fontSize: '3rem', fontWeight: 900, textTransform: 'uppercase', lineHeight: 1 }}>
+          Top Products
+        </h2>
+        <p style={{ marginTop: '0.5rem', color: '#666', fontSize: '1.1rem' }}>
+          Discover our most popular wears
+        </p>
       </div>
       
+      {/* Product Grid */}
       <div 
         className="products-grid" 
         style={{ 
@@ -38,10 +35,18 @@ export function TopProductsSection({ products }: { products: any[] }) {
           gap: '2rem' 
         }}
       >
-        {products?.map(product => (
+        {pagedProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
+
+      {/* Pagination Footer at the BOTTOM with Page changer and View All option */}
+      <PaginationBar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={(p) => setCurrentPage(p)}
+        viewAllHref="/products"
+      />
     </section>
   );
 }

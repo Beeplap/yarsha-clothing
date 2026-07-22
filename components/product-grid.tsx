@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import type { Product, Category } from "@/types/database";
 import ProductCard from "./product-card";
+import PaginationBar from "./pagination-bar";
 
 const PRICE_RANGES = [
   { label: "Under Rs. 1,000", min: 0, max: 1000 },
@@ -61,6 +62,9 @@ export default function ProductGrid({
   );
   const [sortBy, setSortBy] = useState("newest");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isShowingAll, setIsShowingAll] = useState(false);
+  const itemsPerPage = 12;
 
   // Fallback categories list for sidebar rendering when database categories are empty
   const activeCategories = useMemo(() => {
@@ -126,6 +130,11 @@ export default function ProductGrid({
     return result;
   }, [products, search, selectedCategory, selectedPriceRange, sortBy]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const displayedProducts = isShowingAll
+    ? filtered
+    : filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   const activeFilterCount =
     (selectedCategory ? 1 : 0) + (selectedPriceRange !== null ? 1 : 0);
 
@@ -133,6 +142,7 @@ export default function ProductGrid({
     setSelectedCategory("");
     setSelectedPriceRange(null);
     setSearch("");
+    setCurrentPage(1);
   };
 
   const filterSidebar = (
@@ -348,14 +358,27 @@ export default function ProductGrid({
         {/* Product Grid */}
         <div className="catalog__grid-area">
           <p className="catalog__count">
-            {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+            Showing {displayedProducts.length} of {filtered.length} product{filtered.length !== 1 ? "s" : ""}
           </p>
           {filtered.length > 0 ? (
-            <div className="catalog__grid">
-              {filtered.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="catalog__grid">
+                {displayedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+
+              <PaginationBar
+                currentPage={isShowingAll ? 1 : currentPage}
+                totalPages={isShowingAll ? 1 : totalPages}
+                onPageChange={(p) => {
+                  setCurrentPage(p);
+                  window.scrollTo({ top: 300, behavior: "smooth" });
+                }}
+                onViewAllClick={() => setIsShowingAll(!isShowingAll)}
+                isShowingAll={isShowingAll}
+              />
+            </>
           ) : (
             <div className="catalog__empty">
               <p className="catalog__empty-title">No products found</p>
