@@ -12,6 +12,35 @@ const PRICE_RANGES = [
   { label: "Over Rs. 10,000", min: 10000, max: Infinity },
 ];
 
+const CATEGORY_TABS = [
+  { label: "SHOES", slug: "shoes" },
+  { label: "CLOTHING", slug: "clothing" },
+  { label: "ACCESSORIES", slug: "accessories" },
+  { label: "SPORTS", slug: "sports" },
+  { label: "COLLECTIONS", slug: "collections" },
+];
+
+// Helper to determine product category slug dynamically when DB categories are empty or null
+function getProductCategorySlug(p: Product): string {
+  if (p.categories?.slug) return p.categories.slug;
+  if (p.category_id) return p.category_id; // in case UUID matches
+  
+  const name = p.name.toLowerCase();
+  if (name.includes("shoes") || name.includes("sneakers") || name.includes("slides") || name.includes("sandals")) {
+    return "shoes";
+  }
+  if (name.includes("watch") || name.includes("bag") || name.includes("hat") || name.includes("backpack") || name.includes("socks")) {
+    return "accessories";
+  }
+  if (name.includes("soccer") || name.includes("basketball") || name.includes("running") || name.includes("performance") || name.includes("track pants") || name.includes("joggers")) {
+    return "sports";
+  }
+  if (name.includes("jacket") || name.includes("coat") || name.includes("hoodie") || name.includes("sweatshirt") || name.includes("tee") || name.includes("t-shirt") || name.includes("pants") || name.includes("shorts") || name.includes("shirt") || name.includes("polo") || name.includes("vest") || name.includes("parka") || name.includes("denim") || name.includes("fleece")) {
+    return "clothing";
+  }
+  return "collections";
+}
+
 interface ProductGridProps {
   products: Product[];
   categories: Category[];
@@ -33,6 +62,18 @@ export default function ProductGrid({
   const [sortBy, setSortBy] = useState("newest");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  // Fallback categories list for sidebar rendering when database categories are empty
+  const activeCategories = useMemo(() => {
+    if (categories && categories.length > 0) return categories;
+    return [
+      { id: "shoes", name: "Shoes", slug: "shoes", description: null, created_at: "" },
+      { id: "clothing", name: "Clothing", slug: "clothing", description: null, created_at: "" },
+      { id: "accessories", name: "Accessories", slug: "accessories", description: null, created_at: "" },
+      { id: "sports", name: "Sports", slug: "sports", description: null, created_at: "" },
+      { id: "collections", name: "Collections", slug: "collections", description: null, created_at: "" },
+    ];
+  }, [categories]);
+
   const filtered = useMemo(() => {
     let result = [...products];
 
@@ -46,11 +87,13 @@ export default function ProductGrid({
       );
     }
 
-    // Category
+    // Category Filter using database relation or dynamic fallback slug resolver
     if (selectedCategory) {
-      result = result.filter(
-        (p) => p.categories?.slug === selectedCategory
-      );
+      result = result.filter((p) => {
+        const slug = getProductCategorySlug(p);
+        // check if slug matches slug directly, or if it matches active UUID representation in DB
+        return slug === selectedCategory || p.category_id === selectedCategory;
+      });
     }
 
     // Price range
@@ -116,17 +159,20 @@ export default function ProductGrid({
               {selectedCategory === "" && <span className="filters__check">✓</span>}
             </button>
           </li>
-          {categories.map((cat) => (
-            <li key={cat.id}>
-              <button
-                className={`filters__option ${selectedCategory === cat.slug ? "filters__option--active" : ""}`}
-                onClick={() => setSelectedCategory(cat.slug)}
-              >
-                <span>{cat.name}</span>
-                {selectedCategory === cat.slug && <span className="filters__check">✓</span>}
-              </button>
-            </li>
-          ))}
+          {activeCategories.map((cat) => {
+            const isSelected = selectedCategory === cat.slug || selectedCategory === cat.id;
+            return (
+              <li key={cat.id}>
+                <button
+                  className={`filters__option ${isSelected ? "filters__option--active" : ""}`}
+                  onClick={() => setSelectedCategory(cat.slug)}
+                >
+                  <span>{cat.name}</span>
+                  {isSelected && <span className="filters__check">✓</span>}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </div>
 
@@ -161,6 +207,63 @@ export default function ProductGrid({
 
   return (
     <div className="catalog">
+      {/* Horizontal Category Division Bar (as shown in user screenclip) */}
+      <div 
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: "2.5rem",
+          flexWrap: "wrap",
+          padding: "1.5rem 1rem",
+          borderBottom: "1px solid color-mix(in srgb, var(--foreground) 8%, transparent)",
+          marginBottom: "2.5rem"
+        }}
+      >
+        <button
+          onClick={() => setSelectedCategory("")}
+          style={{
+            background: "none",
+            border: "none",
+            fontSize: "0.85rem",
+            fontWeight: 800,
+            letterSpacing: "2.5px",
+            color: selectedCategory === "" ? "var(--accent)" : "var(--foreground)",
+            cursor: "pointer",
+            padding: "0.5rem 0",
+            borderBottom: selectedCategory === "" ? "2px solid var(--accent)" : "2px solid transparent",
+            transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+            fontFamily: "var(--display-font)"
+          }}
+        >
+          ALL
+        </button>
+        {CATEGORY_TABS.map((tab) => {
+          const isActive = selectedCategory === tab.slug;
+          return (
+            <button
+              key={tab.slug}
+              onClick={() => setSelectedCategory(tab.slug)}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: "0.85rem",
+                fontWeight: 800,
+                letterSpacing: "2.5px",
+                color: isActive ? "var(--accent)" : "var(--foreground)",
+                cursor: "pointer",
+                padding: "0.5rem 0",
+                borderBottom: isActive ? "2px solid var(--accent)" : "2px solid transparent",
+                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                fontFamily: "var(--display-font)"
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Top Bar */}
       <div className="catalog__topbar">
         <div className="catalog__search-wrapper">

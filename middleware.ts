@@ -42,42 +42,65 @@ export async function middleware(request: NextRequest) {
   const isAccountPage = pathname.startsWith("/account");
 
   // If user is not logged in and tries to access protected routes
-  if (!user && (isAdminPage || isAccountPage)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
-  }
-
-  // If user is logged in and tries to access auth pages, redirect them
-  if (user && isAuthPage) {
-    const url = request.nextUrl.clone();
-    // Check user role for redirect target
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    url.pathname =
-      profile?.role === "admin" || profile?.role === "manager"
-        ? "/admin"
-        : "/";
-    return NextResponse.redirect(url);
-  }
-
-  // Admin route protection: only admin/manager roles
-  if (user && isAdminPage) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.role !== "admin" && profile?.role !== "manager") {
+  if (!user) {
+    if (isAdminPage) {
+      if (pathname === "/admin/login") {
+        return supabaseResponse;
+      }
       const url = request.nextUrl.clone();
-      url.pathname = "/";
+      url.pathname = "/admin/login";
+      url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
+    }
+    if (isAccountPage) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // If user is logged in
+  if (user) {
+    // Redirect logged in users away from auth pages
+    if (isAuthPage) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      const url = request.nextUrl.clone();
+      url.pathname =
+        profile?.role === "admin" || profile?.role === "manager"
+          ? "/admin"
+          : "/";
+      return NextResponse.redirect(url);
+    }
+
+    // Admin route protection: only admin/manager roles
+    if (isAdminPage) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      const isStaff = profile?.role === "admin" || profile?.role === "manager";
+
+      if (pathname === "/admin/login") {
+        if (isStaff) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/admin";
+          return NextResponse.redirect(url);
+        }
+      } else {
+        if (!isStaff) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/";
+          return NextResponse.redirect(url);
+        }
+      }
     }
   }
 

@@ -269,11 +269,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
         {/* RIGHT COLUMN: Product Info & Purchase Form */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          {/* Red/Accent Urgency Line */}
-          <div style={{ color: "#c53030", fontWeight: 700, fontSize: "0.9rem" }}>
-            In demand. 66 people bought this in the last 24 hours.
-          </div>
-
           {/* Large Price */}
           <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
             <span style={{ fontSize: "2rem", fontWeight: 800, color: "var(--foreground)" }}>

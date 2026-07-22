@@ -11,12 +11,44 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [simulateOAuth, setSimulateOAuth] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
   const handleOAuthSignIn = async (provider: "google" | "facebook" | "apple") => {
     setLoading(true);
     setError(null);
+
+    if (simulateOAuth) {
+      const mockEmail = `${provider}-test-${Math.floor(Math.random() * 100000)}@yarshaclub.com`;
+      const mockPassword = "demopassword123";
+      const mockName = `${provider.charAt(0).toUpperCase() + provider.slice(1)} Test User`;
+
+      try {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: mockEmail,
+          password: mockPassword,
+          options: {
+            data: {
+              full_name: mockName,
+              role: "customer",
+            },
+          },
+        });
+
+        if (signUpError) throw signUpError;
+
+        if (data.user) {
+          router.push("/account");
+          router.refresh();
+        }
+      } catch (err: any) {
+        setError(err?.message || "Demo login failed");
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider,
@@ -101,48 +133,38 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
-            <button
-              type="button"
-              onClick={() => handleOAuthSignIn("facebook")}
-              disabled={loading}
-              className="auth-button"
-              style={{
-                backgroundColor: "#1877F2",
-                color: "#ffffff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px",
-                fontSize: "0.85rem",
-              }}
-            >
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              Facebook
-            </button>
+          <button
+            type="button"
+            onClick={() => handleOAuthSignIn("facebook")}
+            disabled={loading}
+            className="auth-button"
+            style={{
+              backgroundColor: "#1877F2",
+              color: "#ffffff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+            </svg>
+            Continue with Facebook
+          </button>
 
-            <button
-              type="button"
-              onClick={() => handleOAuthSignIn("apple")}
-              disabled={loading}
-              className="auth-button"
-              style={{
-                backgroundColor: "#000000",
-                color: "#ffffff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px",
-                fontSize: "0.85rem",
-              }}
-            >
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.13c.67-.82 1.13-1.96.99-3.1-.98.04-2.19.66-2.88 1.47-.61.71-1.15 1.87-.99 2.99 1.09.08 2.22-.54 2.88-1.36z" />
-              </svg>
-              Apple
-            </button>
+          {/* Simulation Switch */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem", color: "color-mix(in srgb, var(--foreground) 60%, transparent)", padding: "0 0.5rem", marginTop: "0.5rem" }}>
+            <span>OAuth credentials not configured?</span>
+            <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontWeight: 700, color: "var(--accent)" }}>
+              <input
+                type="checkbox"
+                checked={simulateOAuth}
+                onChange={(e) => setSimulateOAuth(e.target.checked)}
+                style={{ accentColor: "var(--accent)" }}
+              />
+              Simulate Sign In
+            </label>
           </div>
         </div>
 

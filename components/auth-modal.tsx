@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { X, Sparkles, Gift, Truck, Coins, ShieldCheck, Mail, Lock, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -25,14 +25,56 @@ export default function AuthModal({
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [simulateOAuth, setSimulateOAuth] = useState(false);
 
   const supabase = createClient();
+
+  // Notify hero blob to hide/show on mobile when the auth panel opens/closes
+  useEffect(() => {
+    if (!isOpen) return;
+    window.dispatchEvent(new Event("yarsha:auth-open"));
+    return () => {
+      window.dispatchEvent(new Event("yarsha:auth-close"));
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleOAuthSignIn = async (provider: "google" | "facebook" | "apple") => {
     setLoading(true);
     setError(null);
+
+    if (simulateOAuth) {
+      const mockEmail = `${provider}-test-${Math.floor(Math.random() * 100000)}@yarshaclub.com`;
+      const mockPassword = "demopassword123";
+      const mockName = `${provider.charAt(0).toUpperCase() + provider.slice(1)} Test User`;
+
+      try {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: mockEmail,
+          password: mockPassword,
+          options: {
+            data: {
+              full_name: mockName,
+              role: "customer",
+            },
+          },
+        });
+
+        if (signUpError) throw signUpError;
+
+        if (data.user) {
+          toast.success(`Demo ${provider} login simulated successfully!`);
+          if (onSuccess) onSuccess();
+          onClose();
+        }
+      } catch (err: any) {
+        setError(err?.message || "Demo login failed");
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider,
@@ -95,67 +137,82 @@ export default function AuthModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+      {/* Full-screen overlay */}
+      <div className="fixed inset-0 z-50 flex">
+        {/* Left backdrop — clicking it closes the panel (desktop only) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="relative w-full max-w-lg bg-[var(--background)] text-[var(--foreground)] border border-[color-mix(in_srgb,var(--foreground)_15%,transparent)] rounded-3xl shadow-2xl overflow-hidden my-8"
+          key="backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="hidden md:block flex-1 bg-black/50 backdrop-blur-sm cursor-pointer"
+          onClick={onClose}
+          aria-label="Close"
+        />
+
+        {/* Right panel — full width on mobile, fixed width on desktop */}
+        <motion.div
+          key="panel"
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+          className="relative w-full md:w-[480px] lg:w-[520px] h-full bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-y-auto shadow-2xl"
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-[color-mix(in_srgb,var(--foreground)_10%,transparent)] transition-colors z-10"
+            className="absolute top-5 right-5 p-2 rounded-full hover:bg-[color-mix(in_srgb,var(--foreground)_10%,transparent)] transition-colors z-10"
             aria-label="Close"
           >
-            <X size={20} />
+            <X size={22} />
           </button>
 
           {/* YarshaClub Banner */}
-          <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white p-6 relative overflow-hidden">
-            <div className="absolute -right-6 -bottom-6 opacity-10 pointer-events-none">
-              <Sparkles size={160} />
+          <div className="bg-gradient-to-br from-[#2a1a0e] via-[#3d2010] to-[#1e1008] text-white px-8 py-8 relative overflow-hidden flex-shrink-0">
+            <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
+              <Sparkles size={200} />
             </div>
 
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-white/20 text-white text-xs font-bold uppercase px-3 py-1 rounded-full backdrop-blur-md tracking-wider flex items-center gap-1">
-                <Sparkles size={14} /> YarshaClub Rewards
+            <div className="flex items-center gap-2 mb-3">
+              <span className="bg-white/20 text-white text-xs font-bold uppercase px-3 py-1 rounded-full backdrop-blur-md tracking-wider flex items-center gap-1.5">
+                <Sparkles size={13} /> YarshaClub Rewards
               </span>
             </div>
 
-            <h2 className="text-2xl font-black tracking-tight uppercase">
+            <h2 className="text-3xl font-black tracking-tight uppercase leading-tight">
               {mode === "signup" ? "Join YarshaClub Today" : "Welcome Back"}
             </h2>
-            <p className="text-xs text-white/90 mt-1 max-w-xs leading-relaxed">
-              Unlock exclusive benefits, instant signup rewards, free shipping & earn 1 point for every Rs 100 spent!
+            <p className="text-sm text-white/90 mt-2 max-w-xs leading-relaxed">
+              Unlock exclusive benefits, instant signup rewards, free shipping &amp; earn 1 point for every Rs 100 spent!
             </p>
 
             {/* Perks Strip */}
-            <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/20 text-[11px] font-semibold">
-              <div className="flex items-center gap-1.5">
-                <Gift size={15} className="text-yellow-300 shrink-0" />
+            <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-white/20 text-xs font-semibold">
+              <div className="flex items-center gap-2">
+                <Gift size={16} className="text-yellow-300 shrink-0" />
                 <span>100 Signup Pts</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Truck size={15} className="text-yellow-300 shrink-0" />
+              <div className="flex items-center gap-2">
+                <Truck size={16} className="text-yellow-300 shrink-0" />
                 <span>Free Shipping</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Coins size={15} className="text-yellow-300 shrink-0" />
+              <div className="flex items-center gap-2">
+                <Coins size={16} className="text-yellow-300 shrink-0" />
                 <span>Daily Rewards</span>
               </div>
             </div>
           </div>
 
           {/* Body Content */}
-          <div className="p-6 md:p-8">
+          <div className="flex-1 px-8 py-8">
             {/* Mode Switcher Tabs */}
-            <div className="flex rounded-full bg-[color-mix(in_srgb,var(--foreground)_6%,transparent)] p-1 mb-6">
+            <div className="flex rounded-full bg-[color-mix(in_srgb,var(--foreground)_6%,transparent)] p-1 mb-7">
               <button
                 type="button"
                 onClick={() => setMode("signup")}
-                className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition-all ${
+                className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-full transition-all ${
                   mode === "signup"
                     ? "bg-[var(--accent)] text-white shadow"
                     : "text-[var(--foreground)]/70 hover:text-[var(--foreground)]"
@@ -166,7 +223,7 @@ export default function AuthModal({
               <button
                 type="button"
                 onClick={() => setMode("signin")}
-                className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition-all ${
+                className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-full transition-all ${
                   mode === "signin"
                     ? "bg-[var(--accent)] text-white shadow"
                     : "text-[var(--foreground)]/70 hover:text-[var(--foreground)]"
@@ -177,21 +234,21 @@ export default function AuthModal({
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-600 rounded-xl text-xs font-semibold flex items-center gap-2">
+              <div className="mb-5 p-3 bg-red-500/10 border border-red-500/30 text-red-600 rounded-xl text-xs font-semibold flex items-center gap-2">
                 <ShieldCheck size={16} />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Social Authentication Options */}
-            <div className="space-y-2.5 mb-6">
+            <div className="space-y-3 mb-7">
               <button
                 type="button"
                 onClick={() => handleOAuthSignIn("google")}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_15%,transparent)] bg-[var(--background)] hover:bg-[color-mix(in_srgb,var(--foreground)_4%,var(--background))] transition-colors text-xs font-bold tracking-wide"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_15%,transparent)] bg-[var(--background)] hover:bg-[color-mix(in_srgb,var(--foreground)_4%,var(--background))] transition-colors text-sm font-bold tracking-wide"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
@@ -200,34 +257,34 @@ export default function AuthModal({
                 Continue with Google
               </button>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => handleOAuthSignIn("facebook")}
-                  disabled={loading}
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_15%,transparent)] bg-[#1877F2] text-white hover:opacity-90 transition-opacity text-xs font-bold"
-                >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  Facebook
-                </button>
+              <button
+                type="button"
+                onClick={() => handleOAuthSignIn("facebook")}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_15%,transparent)] bg-[#1877F2] text-white hover:opacity-90 transition-opacity text-sm font-bold"
+              >
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                Continue with Facebook
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleOAuthSignIn("apple")}
-                  disabled={loading}
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_15%,transparent)] bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity text-xs font-bold"
-                >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.13c.67-.82 1.13-1.96.99-3.1-.98.04-2.19.66-2.88 1.47-.61.71-1.15 1.87-.99 2.99 1.09.08 2.22-.54 2.88-1.36z" />
-                  </svg>
-                  Apple
-                </button>
+              {/* Simulation Switch */}
+              <div className="flex items-center justify-between text-xs text-[var(--foreground)]/60 px-1 mt-3">
+                <span>OAuth credentials not configured?</span>
+                <label className="flex items-center gap-1.5 cursor-pointer font-bold text-[var(--accent)] hover:opacity-80">
+                  <input
+                    type="checkbox"
+                    checked={simulateOAuth}
+                    onChange={(e) => setSimulateOAuth(e.target.checked)}
+                    className="accent-[var(--accent)]"
+                  />
+                  Simulate Social Sign In
+                </label>
               </div>
             </div>
 
-            <div className="relative flex items-center justify-center mb-6">
+            <div className="relative flex items-center justify-center mb-7">
               <div className="border-t border-[color-mix(in_srgb,var(--foreground)_12%,transparent)] w-full" />
               <span className="absolute bg-[var(--background)] px-3 text-[10px] font-bold tracking-wider uppercase text-[var(--foreground)]/50">
                 Or with email address
@@ -235,20 +292,20 @@ export default function AuthModal({
             </div>
 
             {/* Email Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {mode === "signup" && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 text-[var(--foreground)]/80">
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--foreground)]/80">
                     Full Name
                   </label>
                   <div className="relative">
-                    <UserIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" />
+                    <UserIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" />
                     <input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Your Full Name"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_18%,transparent)] bg-transparent text-sm font-medium placeholder:text-[var(--foreground)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_18%,transparent)] bg-transparent text-sm font-medium placeholder:text-[var(--foreground)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
                       required={mode === "signup"}
                     />
                   </div>
@@ -256,34 +313,34 @@ export default function AuthModal({
               )}
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 text-[var(--foreground)]/80">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--foreground)]/80">
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" />
+                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_18%,transparent)] bg-transparent text-sm font-medium placeholder:text-[var(--foreground)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_18%,transparent)] bg-transparent text-sm font-medium placeholder:text-[var(--foreground)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 text-[var(--foreground)]/80">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--foreground)]/80">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" />
+                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" />
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_18%,transparent)] bg-transparent text-sm font-medium placeholder:text-[var(--foreground)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-[color-mix(in_srgb,var(--foreground)_18%,transparent)] bg-transparent text-sm font-medium placeholder:text-[var(--foreground)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
                     required
                     minLength={6}
                   />
@@ -293,7 +350,7 @@ export default function AuthModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-6 rounded-full bg-[var(--accent)] text-white font-extrabold text-xs uppercase tracking-widest hover:opacity-90 active:scale-[0.99] transition-all shadow-lg shadow-[var(--accent)]/20 disabled:opacity-50 mt-2"
+                className="w-full py-3.5 px-6 rounded-full bg-[var(--accent)] text-white font-extrabold text-xs uppercase tracking-widest hover:opacity-90 active:scale-[0.99] transition-all shadow-lg shadow-[var(--accent)]/20 disabled:opacity-50 mt-1"
               >
                 {loading
                   ? "Processing..."
@@ -303,8 +360,8 @@ export default function AuthModal({
               </button>
             </form>
 
-            <p className="mt-4 text-[11px] text-center text-[var(--foreground)]/50">
-              By continuing, you agree to Yarsha Wears Terms of Service & Privacy Policy.
+            <p className="mt-5 text-[11px] text-center text-[var(--foreground)]/50">
+              By continuing, you agree to Yarsha Wears Terms of Service &amp; Privacy Policy.
             </p>
           </div>
         </motion.div>

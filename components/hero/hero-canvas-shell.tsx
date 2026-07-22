@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { CanvasLoader } from "@/components/three/CanvasLoader";
 
@@ -52,11 +52,47 @@ export function HeroCanvasShell() {
     };
   }, []);
 
+  const [blobVisible, setBlobVisible] = useState(true);
+
+  // Mobile: hide blob on first user interaction, show again when auth modal closes
+  useEffect(() => {
+    const isMobile = () => window.innerWidth < 768;
+
+    const hideBlob = () => {
+      if (isMobile()) setBlobVisible(false);
+    };
+
+    const showBlob = () => {
+      if (isMobile()) setBlobVisible(true);
+    };
+
+    // Hide as soon as user first touches/clicks on mobile
+    const handleFirstInteraction = () => {
+      hideBlob();
+      window.removeEventListener("touchstart", handleFirstInteraction);
+      window.removeEventListener("click", handleFirstInteraction);
+    };
+
+    window.addEventListener("touchstart", handleFirstInteraction, { passive: true });
+    window.addEventListener("click", handleFirstInteraction);
+
+    // Hide when auth modal opens, show when it closes
+    window.addEventListener("yarsha:auth-open", hideBlob);
+    window.addEventListener("yarsha:auth-close", showBlob);
+
+    return () => {
+      window.removeEventListener("touchstart", handleFirstInteraction);
+      window.removeEventListener("click", handleFirstInteraction);
+      window.removeEventListener("yarsha:auth-open", hideBlob);
+      window.removeEventListener("yarsha:auth-close", showBlob);
+    };
+  }, []);
+
   return (
     <div
       ref={containerRef}
       className={`pointer-events-none absolute left-0 top-0 z-[2] w-full h-[100svh] overflow-hidden transition-opacity duration-700 ${
-        isHome ? "opacity-100" : "opacity-0"
+        isHome && blobVisible ? "opacity-100" : "opacity-0"
       }`}
       aria-hidden="true"
     >
