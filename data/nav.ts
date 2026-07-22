@@ -12,94 +12,94 @@ export interface NavCategory {
 export const menuLinks: NavCategory[] = [
   {
     label: "MEN",
-    href: "/products?gender=men",
+    href: "/products?category=shoes",
     megaMenu: [
       {
         title: "SHOES",
         links: [
-          { label: "Sneakers", href: "/products/men/shoes/sneakers" },
-          { label: "Running Shoes", href: "/products/men/shoes/running" },
-          { label: "Walking Shoes", href: "/products/men/shoes/walking" },
-          { label: "Slides & Sandals", href: "/products/men/shoes/sandals" },
+          { label: "Sneakers", href: "/products?category=shoes" },
+          { label: "Running Shoes", href: "/products?category=shoes" },
+          { label: "Walking Shoes", href: "/products?category=shoes" },
+          { label: "Slides & Sandals", href: "/products?category=shoes" },
         ],
       },
       {
         title: "CLOTHING",
         links: [
-          { label: "Shorts", href: "/products/men/clothing/shorts" },
-          { label: "Pants", href: "/products/men/clothing/pants" },
-          { label: "Shirts & Tops", href: "/products/men/clothing/shirts" },
-          { label: "Hoodies & Sweatshirts", href: "/products/men/clothing/hoodies" },
+          { label: "Shorts", href: "/products?category=clothing" },
+          { label: "Pants", href: "/products?category=clothing" },
+          { label: "Shirts & Tops", href: "/products?category=clothing" },
+          { label: "Hoodies & Sweatshirts", href: "/products?category=clothing" },
         ],
       },
       {
         title: "ACCESSORIES",
         links: [
-          { label: "Socks", href: "/products/men/accessories/socks" },
-          { label: "Hats & Beanies", href: "/products/men/accessories/hats" },
-          { label: "Bags & Backpacks", href: "/products/men/accessories/bags" },
+          { label: "Socks", href: "/products?category=accessories" },
+          { label: "Hats & Beanies", href: "/products?category=accessories" },
+          { label: "Bags & Backpacks", href: "/products?category=accessories" },
         ],
       },
       {
         title: "SPORTS",
         links: [
-          { label: "Soccer", href: "/products/men/sports/soccer" },
-          { label: "Running", href: "/products/men/sports/running" },
-          { label: "Basketball", href: "/products/men/sports/basketball" },
+          { label: "Soccer", href: "/products?category=sports" },
+          { label: "Running", href: "/products?category=sports" },
+          { label: "Basketball", href: "/products?category=sports" },
         ],
       },
     ],
   },
   {
     label: "WOMEN",
-    href: "/products?gender=women",
+    href: "/products?category=clothing",
     megaMenu: [
       {
         title: "SHOES",
         links: [
-          { label: "Sneakers", href: "/products/women/shoes/sneakers" },
-          { label: "Running Shoes", href: "/products/women/shoes/running" },
-          { label: "Walking Shoes", href: "/products/women/shoes/walking" },
+          { label: "Sneakers", href: "/products?category=shoes" },
+          { label: "Running Shoes", href: "/products?category=shoes" },
+          { label: "Walking Shoes", href: "/products?category=shoes" },
         ],
       },
       {
         title: "CLOTHING",
         links: [
-          { label: "Shorts", href: "/products/women/clothing/shorts" },
-          { label: "Pants", href: "/products/women/clothing/pants" },
-          { label: "Shirts & Tops", href: "/products/women/clothing/shirts" },
-          { label: "Hoodies & Sweatshirts", href: "/products/women/clothing/hoodies" },
+          { label: "Shorts", href: "/products?category=clothing" },
+          { label: "Pants", href: "/products?category=clothing" },
+          { label: "Shirts & Tops", href: "/products?category=clothing" },
+          { label: "Hoodies & Sweatshirts", href: "/products?category=clothing" },
         ],
       },
       {
         title: "ACCESSORIES",
         links: [
-          { label: "Socks", href: "/products/women/accessories/socks" },
-          { label: "Hats & Beanies", href: "/products/women/accessories/hats" },
-          { label: "Bags & Backpacks", href: "/products/women/accessories/bags" },
+          { label: "Socks", href: "/products?category=accessories" },
+          { label: "Hats & Beanies", href: "/products?category=accessories" },
+          { label: "Bags & Backpacks", href: "/products?category=accessories" },
         ],
       },
     ],
   },
   {
     label: "KIDS",
-    href: "/products?gender=kids",
+    href: "/products?category=collections",
     megaMenu: [
       {
         title: "SHOES",
         links: [
-          { label: "Sneakers", href: "/products/kids/shoes/sneakers" },
-          { label: "Running Shoes", href: "/products/kids/shoes/running" },
+          { label: "Sneakers", href: "/products?category=shoes" },
+          { label: "Running Shoes", href: "/products?category=shoes" },
         ],
       },
       {
         title: "CLOTHING",
         links: [
-          { label: "Shorts", href: "/products/kids/clothing/shorts" },
-          { label: "Shirts & Tops", href: "/products/kids/clothing/shirts" },
+          { label: "Shorts", href: "/products?category=clothing" },
+          { label: "Shirts & Tops", href: "/products?category=clothing" },
         ],
       },
-    ]
+    ],
   },
   { label: "SALE", href: "/sale" },
   { label: "SPORTS", href: "/sports" },
