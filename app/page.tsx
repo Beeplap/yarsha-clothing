@@ -17,7 +17,7 @@ export default async function Home() {
   const { data: products } = await supabase
     .from("products")
     .select("*, categories(name)")
-    .limit(8);
+    .order("created_at", { ascending: false });
 
   const breadcrumb = {
     "@context": "https://schema.org",
