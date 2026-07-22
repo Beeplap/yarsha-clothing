@@ -4,26 +4,52 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { Product } from "@/types/database";
 import { useCart } from "@/context/cart-context";
-import { Heart, ShoppingBag, Trash2, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { ShoppingBag, Trash2, ArrowRight, Eye, Sparkles } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 export default function WishlistPage() {
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
+  const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart();
+  const { items: cartItems, addToCart } = useCart();
+  const supabase = createClient();
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("yarsha_wishlist");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setWishlistItems(parsed);
+    const loadData = async () => {
+      try {
+        // Load Wishlist
+        const storedWishlist = localStorage.getItem("yarsha_wishlist");
+        if (storedWishlist) {
+          const parsed = JSON.parse(storedWishlist);
+          if (Array.isArray(parsed)) setWishlistItems(parsed);
+        }
+
+        // Load Recently Viewed from localStorage
+        const storedRecent = localStorage.getItem("yarsha_recently_viewed");
+        let recentList: Product[] = storedRecent ? JSON.parse(storedRecent) : [];
+        if (!Array.isArray(recentList)) recentList = [];
+
+        // If local recent list is empty, fetch top featured products as fallback
+        if (recentList.length === 0) {
+          const { data } = await supabase
+            .from("products")
+            .select("*")
+            .limit(6);
+          if (data && data.length > 0) {
+            recentList = data as unknown as Product[];
+          }
+        }
+
+        setRecentlyViewed(recentList);
+      } catch {
+        // ignore
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    loadData();
   }, []);
 
   const removeFromWishlist = (id: string) => {
@@ -50,7 +76,7 @@ export default function WishlistPage() {
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "2.5rem 5vw 5rem 5vw", fontFamily: "var(--body-font)", color: "var(--foreground)", minHeight: "80vh" }}>
       
       {/* Header */}
-      <div style={{ marginBottom: "2rem", borderBottom: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)", paddingBottom: "1.5rem" }}>
+      <div style={{ marginBottom: "2.5rem", borderBottom: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)", paddingBottom: "1.5rem" }}>
         <h1 style={{ fontSize: "2.25rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px", margin: 0, display: "flex", alignItems: "center", gap: "0.75rem" }}>
           MY WISHLIST <span style={{ fontSize: "1.25rem", fontWeight: 600, color: "color-mix(in srgb, var(--foreground) 50%, transparent)", textTransform: "none" }}>({wishlistItems.length} {wishlistItems.length === 1 ? "item" : "items"})</span>
         </h1>
@@ -60,186 +86,266 @@ export default function WishlistPage() {
         <div style={{ padding: "4rem 0", textAlign: "center", color: "color-mix(in srgb, var(--foreground) 60%, transparent)" }}>
           Loading your saved items...
         </div>
-      ) : wishlistItems.length === 0 ? (
-        /* Empty State Layout - Matched to ScreenClip */
-        <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
-          
-          <p style={{ fontSize: "1.05rem", color: "color-mix(in srgb, var(--foreground) 80%, transparent)", margin: 0, maxWidth: "700px", lineHeight: 1.6 }}>
-            You haven&apos;t saved any items to your wishlist yet. Start shopping and add your favorite items to your wishlist.
-          </p>
-
-          {/* Promotional App & Wishlist Card */}
-          <div 
-            style={{
-              maxWidth: "750px",
-              backgroundColor: "color-mix(in srgb, var(--foreground) 3%, var(--background))",
-              border: "1px solid color-mix(in srgb, var(--foreground) 12%, transparent)",
-              borderRadius: "16px",
-              padding: "2.5rem",
-              position: "relative",
-              overflow: "hidden",
-              boxShadow: "0 10px 30px -10px rgba(0,0,0,0.05)"
-            }}
-          >
-            <div style={{ position: "absolute", top: "-20px", right: "-20px", opacity: 0.05, pointerEvents: "none" }}>
-              <Sparkles size={200} />
-            </div>
-
-            <h2 style={{ fontSize: "1.6rem", fontWeight: 900, marginBottom: "1.5rem", letterSpacing: "-0.5px" }}>
-              Get more from your wishlist through the app
-            </h2>
-
-            <ul style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: 0, margin: "0 0 2.5rem 0", listStyle: "none" }}>
-              <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "0.95rem", lineHeight: 1.5 }}>
-                <span style={{ fontSize: "1.2rem", lineHeight: 1, marginTop: "2px" }}>•</span>
-                <span>Instant notifications on items on sale or low in stock</span>
-              </li>
-              <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "0.95rem", lineHeight: 1.5 }}>
-                <span style={{ fontSize: "1.2rem", lineHeight: 1, marginTop: "2px" }}>•</span>
-                <span>Share your wishlist with friends and family</span>
-              </li>
-              <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "0.95rem", lineHeight: 1.5 }}>
-                <span style={{ fontSize: "1.2rem", lineHeight: 1, marginTop: "2px" }}>•</span>
-                <span>See which wishlist items are eligible for a voucher</span>
-              </li>
-              <li style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "0.95rem", lineHeight: 1.5 }}>
-                <span style={{ fontSize: "1.2rem", lineHeight: 1, marginTop: "2px" }}>•</span>
-                <span>Get 50 YarshaClub points and unlock more rewards with the app</span>
-              </li>
-            </ul>
-
-            {/* QR Code Scan Footer Box */}
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1.5rem", paddingTop: "1.5rem", borderTop: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={{ fontSize: "0.95rem", fontWeight: 800 }}>Scan to download the Yarsha Wears app</span>
-                <span style={{ color: "color-mix(in srgb, var(--foreground) 40%, transparent)" }}>➔</span>
-              </div>
-
-              {/* Vector SVG Mock QR Code */}
-              <div style={{ backgroundColor: "#ffffff", padding: "10px", borderRadius: "12px", border: "1px solid #e5e5e5", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-                <svg width="76" height="76" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter">
-                  <rect x="2" y="2" width="7" height="7" fill="#000" />
-                  <rect x="15" y="2" width="7" height="7" fill="#000" />
-                  <rect x="2" y="15" width="7" height="7" fill="#000" />
-                  <rect x="4" y="4" width="3" height="3" fill="#fff" />
-                  <rect x="17" y="4" width="3" height="3" fill="#fff" />
-                  <rect x="4" y="17" width="3" height="3" fill="#fff" />
-                  <rect x="11" y="4" width="2" height="5" fill="#000" />
-                  <rect x="14" y="12" width="4" height="2" fill="#000" />
-                  <rect x="11" y="15" width="2" height="7" fill="#000" />
-                  <rect x="15" y="17" width="5" height="5" fill="#000" />
-                </svg>
-              </div>
-            </div>
-
-          </div>
-
-          <div style={{ marginTop: "1rem" }}>
-            <Link 
-              href="/products" 
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "0.875rem 2rem",
-                borderRadius: "30px",
-                backgroundColor: "var(--foreground)",
-                color: "var(--background)",
-                textDecoration: "none",
-                fontWeight: 800,
-                fontSize: "0.9rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                boxShadow: "0 4px 14px rgba(0,0,0,0.15)"
-              }}
-            >
-              Explore Catalog <ArrowRight size={16} />
-            </Link>
-          </div>
-
-        </div>
       ) : (
-        /* Wishlist Items Grid */
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "2rem" }}>
-          {wishlistItems.map((item) => (
-            <div 
-              key={item.id}
-              style={{
-                border: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)",
-                borderRadius: "16px",
-                overflow: "hidden",
-                backgroundColor: "color-mix(in srgb, var(--foreground) 2%, var(--background))",
-                display: "flex",
-                flexDirection: "column"
-              }}
-            >
-              <div style={{ aspectRatio: "1/1", position: "relative", backgroundColor: "#f3f3f3" }}>
-                <img 
-                  src={item.images?.[0] || "/placeholder-product.jpg"} 
-                  alt={item.name} 
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                />
-                <button
-                  onClick={() => removeFromWishlist(item.id)}
+        <div style={{ display: "flex", flexDirection: "column", gap: "4rem" }}>
+          
+          {/* Section 1: Wishlist Items / Empty Wishlist State */}
+          <div>
+            {wishlistItems.length === 0 ? (
+              <div 
+                style={{
+                  padding: "3rem 2rem",
+                  borderRadius: "20px",
+                  backgroundColor: "color-mix(in srgb, var(--foreground) 2%, var(--background))",
+                  border: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)",
+                  marginBottom: "1rem"
+                }}
+              >
+                <h2 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "0 0 0.5rem 0", textTransform: "uppercase" }}>Your wishlist is empty</h2>
+                <p style={{ fontSize: "1.05rem", color: "color-mix(in srgb, var(--foreground) 75%, transparent)", margin: "0 0 1.5rem 0", maxWidth: "650px", lineHeight: 1.6 }}>
+                  You haven&apos;t saved any items to your wishlist yet. Start shopping and tap the heart icon on any product to save your favorite items.
+                </p>
+                <Link 
+                  href="/products" 
                   style={{
-                    position: "absolute",
-                    top: "12px",
-                    right: "12px",
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "50%",
-                    backgroundColor: "#ffffff",
-                    border: "none",
-                    display: "flex",
+                    display: "inline-flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
-                    color: "#dc2626"
-                  }}
-                  title="Remove from wishlist"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-
-              <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between" }}>
-                <div>
-                  <h3 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 0.5rem 0", lineHeight: 1.3 }}>
-                    <Link href={`/products/${item.slug}`} style={{ color: "inherit", textDecoration: "none" }}>
-                      {item.name}
-                    </Link>
-                  </h3>
-                  <p style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--foreground)", margin: "0 0 1rem 0" }}>
-                    Rs. {Number(item.price).toLocaleString()}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleMoveToBag(item)}
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem",
-                    borderRadius: "24px",
-                    backgroundColor: "var(--accent)",
-                    color: "#ffffff",
-                    border: "none",
+                    gap: "8px",
+                    padding: "0.85rem 1.75rem",
+                    borderRadius: "30px",
+                    backgroundColor: "var(--foreground)",
+                    color: "var(--background)",
+                    textDecoration: "none",
                     fontWeight: 800,
                     fontSize: "0.85rem",
                     textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px"
+                    letterSpacing: "0.5px"
                   }}
                 >
-                  <ShoppingBag size={16} /> Add to Bag
-                </button>
+                  Explore Collections <ArrowRight size={16} />
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "2rem" }}>
+                {wishlistItems.map((item) => (
+                  <div 
+                    key={item.id}
+                    style={{
+                      border: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)",
+                      borderRadius: "16px",
+                      overflow: "hidden",
+                      backgroundColor: "color-mix(in srgb, var(--foreground) 2%, var(--background))",
+                      display: "flex",
+                      flexDirection: "column"
+                    }}
+                  >
+                    <div style={{ aspectRatio: "1/1", position: "relative", backgroundColor: "#f3f3f3" }}>
+                      <img 
+                        src={item.images?.[0] || "/placeholder-product.jpg"} 
+                        alt={item.name} 
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                      />
+                      <button
+                        onClick={() => removeFromWishlist(item.id)}
+                        style={{
+                          position: "absolute",
+                          top: "12px",
+                          right: "12px",
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          backgroundColor: "#ffffff",
+                          border: "none",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+                          color: "#dc2626"
+                        }}
+                        title="Remove from wishlist"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+
+                    <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between" }}>
+                      <div>
+                        <h3 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 0.5rem 0", lineHeight: 1.3 }}>
+                          <Link href={`/products/${item.slug}`} style={{ color: "inherit", textDecoration: "none" }}>
+                            {item.name}
+                          </Link>
+                        </h3>
+                        <p style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--foreground)", margin: "0 0 1rem 0" }}>
+                          Rs. {Number(item.price).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => handleMoveToBag(item)}
+                        style={{
+                          width: "100%",
+                          padding: "0.75rem",
+                          borderRadius: "24px",
+                          backgroundColor: "var(--accent)",
+                          color: "#ffffff",
+                          border: "none",
+                          fontWeight: 800,
+                          fontSize: "0.85rem",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px"
+                        }}
+                      >
+                        <ShoppingBag size={16} /> Add to Bag
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: Items in Your Bag (Only displayed if cart has items) */}
+          {cartItems.filter((i) => i.product).length > 0 && (
+            <div style={{ borderTop: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)", paddingTop: "3rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                <h2 style={{ fontSize: "1.5rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.5px", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+                  <ShoppingBag style={{ color: "var(--accent)" }} /> ITEMS IN YOUR BAG ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})
+                </h2>
+                <Link 
+                  href="/cart"
+                  style={{
+                    color: "var(--accent)",
+                    fontWeight: 800,
+                    fontSize: "0.875rem",
+                    textTransform: "uppercase",
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px"
+                  }}
+                >
+                  View Bag &amp; Checkout →
+                </Link>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1.5rem" }}>
+                {cartItems.filter((i): i is typeof i & { product: Product } => Boolean(i.product)).map((cartItem) => (
+                  <div
+                    key={`${cartItem.id}-${cartItem.size}`}
+                    style={{
+                      border: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)",
+                      borderRadius: "16px",
+                      padding: "1rem",
+                      backgroundColor: "color-mix(in srgb, var(--foreground) 2%, var(--background))",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1rem"
+                    }}
+                  >
+                    <div style={{ width: "70px", height: "70px", borderRadius: "12px", overflow: "hidden", backgroundColor: "#f3f3f3", flexShrink: 0 }}>
+                      <img 
+                        src={cartItem.product.images?.[0] || "/placeholder-product.jpg"} 
+                        alt={cartItem.product.name} 
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                      />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: "0 0 0.25rem 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {cartItem.product.name}
+                      </h4>
+                      <div style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--foreground) 65%, transparent)", marginBottom: "0.25rem" }}>
+                        Size: {cartItem.size || "Standard"} | Qty: {cartItem.quantity}
+                      </div>
+                      <div style={{ fontSize: "0.95rem", fontWeight: 800 }}>
+                        Rs. {(Number(cartItem.product.price) * cartItem.quantity).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          )}
+
+          {/* Section 3: Recently Explored Products */}
+          {recentlyViewed.length > 0 && (
+            <div style={{ borderTop: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)", paddingTop: "3rem" }}>
+              <div style={{ marginBottom: "1.75rem" }}>
+                <h2 style={{ fontSize: "1.5rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 0.35rem 0", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Eye style={{ color: "var(--accent)" }} /> RECENTLY EXPLORED PRODUCTS
+                </h2>
+                <p style={{ fontSize: "0.9rem", color: "color-mix(in srgb, var(--foreground) 65%, transparent)", margin: 0 }}>
+                  Items you have recently viewed on Yarsha Wears.
+                </p>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1.5rem" }}>
+                {recentlyViewed.map((item) => (
+                  <div 
+                    key={item.id}
+                    style={{
+                      border: "1px solid color-mix(in srgb, var(--foreground) 10%, transparent)",
+                      borderRadius: "16px",
+                      overflow: "hidden",
+                      backgroundColor: "color-mix(in srgb, var(--foreground) 2%, var(--background))",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between"
+                    }}
+                  >
+                    <div>
+                      <div style={{ aspectRatio: "1/1", position: "relative", backgroundColor: "#f3f3f3" }}>
+                        <img 
+                          src={item.images?.[0] || "/placeholder-product.jpg"} 
+                          alt={item.name} 
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                        />
+                      </div>
+                      <div style={{ padding: "1rem" }}>
+                        <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: "0 0 0.35rem 0", lineHeight: 1.3 }}>
+                          <Link href={`/products/${item.slug}`} style={{ color: "inherit", textDecoration: "none" }}>
+                            {item.name}
+                          </Link>
+                        </h4>
+                        <p style={{ fontSize: "1rem", fontWeight: 800, margin: 0 }}>
+                          Rs. {Number(item.price).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{ padding: "0 1rem 1rem 1rem" }}>
+                      <Link 
+                        href={`/products/${item.slug}`}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                          width: "100%",
+                          padding: "0.6rem",
+                          borderRadius: "20px",
+                          backgroundColor: "color-mix(in srgb, var(--foreground) 6%, transparent)",
+                          color: "var(--foreground)",
+                          textDecoration: "none",
+                          fontWeight: 700,
+                          fontSize: "0.8rem",
+                          textTransform: "uppercase"
+                        }}
+                      >
+                        View Product →
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
       )}
     </div>
